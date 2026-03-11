@@ -1,0 +1,31 @@
+import 'package:flutter/material.dart';
+
+class AppColors {
+  AppColors._();
+
+  static const Color blue = Color(0xff1A3A6E);
+  static const Color blueLight = Color(0xff163460);
+  static const Color bluedDim = Color(0xff0A1628);
+
+  static const Color navy = Color(0xFF07111F);
+  static const Color navyMid = Color(0xFF0C1B2E);
+  static const Color navyCard = Color(0xFF102035);
+  static const Color navyInput = Color(0xFF091728);
+  static const Color navyBorder = Color(0x33C9A84C);
+
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color textSub = Color(0xFF8BA3BF);
+  static const Color textMuted = Color(0xFF4A647E);
+
+  static const LinearGradient blueGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [blue, blueLight, bluedDim],
+  );
+
+  static const LinearGradient backgroundGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [navyMid, navy],
+  );
+}

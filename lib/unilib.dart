@@ -17,7 +17,7 @@ class UniLib extends StatelessWidget {
           title: 'Unilib',
 
           onGenerateRoute: appRouter.generateRoute,
-          initialRoute: Routes.onBoardingScreen,
+          initialRoute: Routes.loginScreen,
         );
       },
     );
