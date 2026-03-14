@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/helper/extention.dart';
 
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/core/theme/app_dimens.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
-import 'package:unilib/feature/login/widgets/app_input_field.dart';
-import 'package:unilib/feature/login/widgets/primary_button.dart';
+import 'package:unilib/feature/login/ui/widgets/app_input_field.dart';
+import 'package:unilib/feature/login/ui/widgets/primary_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,27 +60,21 @@ class _LoginScreenState extends State<LoginScreen>
     setState(() => _isLoading = false);
   }
 
-  // ── Build ─────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.navyMid,
       body: Stack(
         children: [
-          // ── Ambient background glow ──────────────────────
           _BackgroundGlow(),
 
-          // ── Main scroll content ──────────────────────────
           SafeArea(
             child: FadeTransition(
               opacity: _fadeAnim,
               child: SlideTransition(
                 position: _slideAnim,
                 child: SingleChildScrollView(
-                  padding: AppDimens.screenPadding.copyWith(
-                    top: 40,
-                    bottom: 40,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 4.h),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -90,19 +84,19 @@ class _LoginScreenState extends State<LoginScreen>
                         Center(
                           child: SvgPicture.asset(
                             'assets/svgs/logo.svg',
-                            height: 15.h,
+                            height: 20.h,
                           ),
                         ),
-                        const SizedBox(height: AppDimens.spXL),
+                        SizedBox(height: 5.h),
 
                         // Heading
                         Text('Welcome Back', style: AppTextStyles.heading),
-                        const SizedBox(height: AppDimens.spXS),
+                        SizedBox(height: 2.h),
                         Text(
                           'Sign in to borrow books from\nBenha University Library',
                           style: AppTextStyles.subheading,
                         ),
-                        const SizedBox(height: AppDimens.spXL),
+                        SizedBox(height: 2.h),
 
                         // Email field
                         AppInputField(
@@ -113,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _emailCtrl,
                           validator: _validateEmail,
                         ),
-                        const SizedBox(height: AppDimens.spMD),
+                        SizedBox(height: 2.h),
 
                         // Password field
                         AppInputField(
@@ -124,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: _passCtrl,
                           validator: _validatePassword,
                         ),
-                        const SizedBox(height: AppDimens.spSM),
+                        SizedBox(height: 2.h),
 
                         // Forgot password
                         Align(
@@ -142,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppDimens.spLG),
+                        SizedBox(height: 2.h),
 
                         // Sign in button
                         PrimaryButton(
@@ -150,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen>
                           onPressed: _onSignIn,
                           isLoading: _isLoading,
                         ),
-                        const SizedBox(height: AppDimens.spLG),
+                        SizedBox(height: 2.h),
 
                         // Sign up row
                         Center(
@@ -163,7 +157,9 @@ class _LoginScreenState extends State<LoginScreen>
                               ),
                               const SizedBox(width: 4),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  context.pushNamed('signupScreen');
+                                },
                                 style: TextButton.styleFrom(
                                   padding: EdgeInsets.zero,
                                   minimumSize: Size.zero,

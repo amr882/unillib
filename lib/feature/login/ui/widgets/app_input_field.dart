@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/core/theme/app_dimens.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 
 class AppInputField extends StatefulWidget {
@@ -53,14 +53,13 @@ class _AppInputFieldState extends State<AppInputField> {
         // Field label
         Text(widget.label.toUpperCase(), style: AppTextStyles.fieldLabel),
 
-        const SizedBox(height: AppDimens.spXS),
-
+        SizedBox(height: 2.h),
         // Input box
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
             color: AppColors.navyInput,
-            borderRadius: AppDimens.inputRadius,
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: _focused ? AppColors.blue : AppColors.navyBorder,
               width: _focused ? 1.5 : 1.0,
@@ -87,16 +86,16 @@ class _AppInputFieldState extends State<AppInputField> {
               hintText: widget.hint,
               hintStyle: AppTextStyles.hintText,
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppDimens.spMD,
-                vertical: AppDimens.spMD,
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 10.w,
+                vertical: 2.h,
               ),
               prefixIcon: Padding(
                 padding: const EdgeInsets.only(left: 14, right: 10),
                 child: Icon(
                   widget.prefixIcon,
                   color: _focused ? AppColors.blue : AppColors.textMuted,
-                  size: AppDimens.inputIconSize,
+                  size: 2.h,
                 ),
               ),
               prefixIconConstraints: const BoxConstraints(minWidth: 48),
@@ -108,7 +107,7 @@ class _AppInputFieldState extends State<AppInputField> {
                             ? Icons.visibility_off_outlined
                             : Icons.visibility_outlined,
                         color: AppColors.textMuted,
-                        size: AppDimens.inputIconSize,
+                        size: 2.h,
                       ),
                       onPressed: () => setState(() => _obscure = !_obscure),
                     )

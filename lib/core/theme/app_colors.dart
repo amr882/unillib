@@ -6,6 +6,7 @@ class AppColors {
   static const Color blue = Color(0xff1A3A6E);
   static const Color blueLight = Color(0xff163460);
   static const Color bluedDim = Color(0xff0A1628);
+  static const Color gold = Color(0xFFC9A84C);
 
   static const Color navy = Color(0xFF07111F);
   static const Color navyMid = Color(0xFF0C1B2E);
@@ -20,7 +21,7 @@ class AppColors {
   static const LinearGradient blueGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [blue, blueLight, bluedDim],
+    colors: [blue, blueLight, Color.fromARGB(255, 19, 43, 80)],
   );
 
   static const LinearGradient backgroundGradient = LinearGradient(

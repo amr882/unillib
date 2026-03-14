@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/core/theme/app_dimens.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 
 class PrimaryButton extends StatelessWidget {
@@ -21,11 +21,11 @@ class PrimaryButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: AppDimens.btnHeight,
+      height: 6.h,
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: AppColors.blueGradient,
-          borderRadius: AppDimens.btnRadius,
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               color: AppColors.blue.withOpacity(0.40),
@@ -39,7 +39,9 @@ class PrimaryButton extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.transparent,
             shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: AppDimens.btnRadius),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
           ),
           child: isLoading
               ? const SizedBox(
@@ -53,10 +55,7 @@ class PrimaryButton extends StatelessWidget {
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (icon != null) ...[
-                      icon!,
-                      const SizedBox(width: AppDimens.spXS),
-                    ],
+                    if (icon != null) ...[icon!, SizedBox(width: 5.w)],
                     Text(label, style: AppTextStyles.buttonLabel),
                   ],
                 ),
