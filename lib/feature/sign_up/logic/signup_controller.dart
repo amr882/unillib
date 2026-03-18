@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:unilib/feature/sign_up/repo/auth_repository.dart';
+import 'package:unilib/feature/sign_up/repo/signup_repository.dart';
 import 'signup_validators.dart';
 
 class SignupController extends ChangeNotifier {
-  SignupController({AuthRepository? repo}) : _repo = repo ?? AuthRepository();
+  SignupController({SignupRepository? repo})
+    : _repo = repo ?? SignupRepository();
 
-  final AuthRepository _repo;
+  final SignupRepository _repo;
   int _step = 0;
   int get step => _step;
 

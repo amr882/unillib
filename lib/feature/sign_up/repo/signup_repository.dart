@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:unilib/feature/home/data/models/user_model.dart';
 
-class AuthRepository {
+class SignupRepository {
   FirebaseAuth get _auth => FirebaseAuth.instance;
   FirebaseFirestore get _db => FirebaseFirestore.instance;
 
-  Future<void> registerUser({
+  Future<UserModel> registerUser({
     required String email,
     required String password,
     required String firstName,
@@ -14,20 +15,28 @@ class AuthRepository {
     required String faculty,
     required String academicYear,
   }) async {
-    final cred = await _auth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      final userData = {
+        'firstName': firstName,
+        'lastName': lastName,
+        'studentId': studentId,
+        'faculty': faculty,
+        'academicYear': academicYear,
+        'email': email,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+      await _db.collection('users').doc(cred.user!.uid).set(userData);
 
-    await _db.collection('users').doc(cred.user!.uid).set({
-      'firstName': firstName,
-      'lastName': lastName,
-      'studentId': studentId,
-      'faculty': faculty,
-      'academicYear': academicYear,
-      'email': email,
-      'createdAt': FieldValue.serverTimestamp(),
-    });
+      return UserModel.fromMap(userData, cred.user!.uid);
+    } on FirebaseAuthException catch (e) {
+      throw mapError(e);
+    } catch (e) {
+      throw 'Registration failed: $e';
+    }
   }
 
   String mapError(Object e) {

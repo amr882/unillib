@@ -135,7 +135,10 @@ class ReviewStep extends StatelessWidget {
           onPressed: () async {
             final success = await ctrl.createAccount();
             if (success && context.mounted) {
-              context.pushNamed('homeScreen');
+              context.pushNamedAndRemoveUntil(
+                'homeScreen',
+                predicate: (_) => false,
+              );
             }
           },
           isLoading: ctrl.isLoading,
