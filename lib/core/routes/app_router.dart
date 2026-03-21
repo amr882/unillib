@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/routes/routes.dart';
-import 'package:unilib/feature/home/ui/home_screen.dart';
+import 'package:unilib/feature/home/ui/nav_pages/home_screen.dart';
+import 'package:unilib/feature/home/ui/main_scaffold.dart';
 import 'package:unilib/feature/login/logic/login_controller.dart';
 import 'package:unilib/feature/login/ui/login_screen.dart';
 import 'package:unilib/feature/sign_up/ui/signup_screen.dart';
@@ -20,6 +22,13 @@ class AppRouter {
         );
       case Routes.signupScreen:
         return MaterialPageRoute(builder: (_) => SignupScreen());
+      case Routes.mainScaffold:
+        return MaterialPageRoute(
+          builder: (_) => MultiProvider(
+            providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+            child: const MainScaffold(),
+          ),
+        );
 
       default:
         return MaterialPageRoute(

@@ -38,7 +38,7 @@ class _UniLibState extends State<UniLib> {
           onGenerateRoute: widget.appRouter.generateRoute,
           initialRoute: FirebaseAuth.instance.currentUser == null
               ? Routes.loginScreen
-              : Routes.homeScreen,
+              : Routes.mainScaffold,
         );
       },
     );

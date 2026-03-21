@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:unilib/feature/home/data/models/user_model.dart';
+import 'package:unilib/core/model/user_model.dart';
 
 class SignupRepository {
   FirebaseAuth get _auth => FirebaseAuth.instance;
