@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/helper/extention.dart';
+import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 import 'package:unilib/feature/login/ui/widgets/app_input_field.dart';
@@ -51,7 +52,10 @@ class _LoginScreenState extends State<LoginScreen>
 
     bool success = await controller.login(context);
     if (success && mounted) {
-      context.pushNamedAndRemoveUntil('homeScreen', predicate: (_) => false);
+      context.pushNamedAndRemoveUntil(
+        Routes.mainScaffold,
+        predicate: (_) => false,
+      );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

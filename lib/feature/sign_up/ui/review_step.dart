@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/helper/extention.dart';
+import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 import 'package:unilib/feature/login/ui/widgets/primary_button.dart';
@@ -136,7 +137,7 @@ class ReviewStep extends StatelessWidget {
             final success = await ctrl.createAccount();
             if (success && context.mounted) {
               context.pushNamedAndRemoveUntil(
-                'homeScreen',
+                Routes.mainScaffold,
                 predicate: (_) => false,
               );
             }

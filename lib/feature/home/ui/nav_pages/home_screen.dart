@@ -2,11 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
+import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
+import 'package:unilib/feature/home/logic/book_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Book> trendings = [];
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => _fetchData());
+  }
+
+  Future<void> _fetchData() async {
+    await context.read<BooksProvider>().fetchTrending();
+    final trending = context.read<BooksProvider>().trending;
+    debugPrint('Trending count: ${trending.length}');
+    for (final book in trending) {
+      debugPrint('📚 ${book.title} — borrows: ${book.borrowCount}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +55,8 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _WelcomeHeader(
-                      userName: user?.firstName.toUpperCase() ?? 'USER',
+                      userName: "${user?.firstName} ${user?.lastName}"
+                          .toUpperCase(),
                     ),
                     SizedBox(height: 2.h),
                     const _SearchBar(),
@@ -74,30 +98,46 @@ class HomeScreen extends StatelessWidget {
 
 class _WelcomeHeader extends StatelessWidget {
   final String userName;
+
   const _WelcomeHeader({required this.userName});
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          'Welcome back,',
-          style: TextStyle(
-            fontSize: 20.sp,
-            color: AppColors.textSub,
-            fontWeight: FontWeight.w400,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome back,',
+              style: AppTextStyles.heading.copyWith(
+                color: AppColors.textSub,
+                fontSize: 20.sp,
+              ),
+            ),
+            SizedBox(height: 0.3.h),
+            Text(
+              userName,
+              style: TextStyle(
+                fontFamily: 'Georgia',
+                fontSize: 18.sp,
+                color: AppColors.white,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
-        SizedBox(height: 0.3.h),
-        Text(
-          userName,
-          style: TextStyle(
-            fontFamily: 'Georgia',
-            fontSize: 18.sp,
-            color: AppColors.white,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.3,
+        CircleAvatar(
+          radius: 20,
+          backgroundColor: AppColors.gold,
+          child: Text(
+            userName.isNotEmpty ? userName[0] : 'U',
+            style: AppTextStyles.heading.copyWith(
+              color: AppColors.white,
+              fontSize: 18,
+            ),
           ),
         ),
       ],

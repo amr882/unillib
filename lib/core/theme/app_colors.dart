@@ -9,7 +9,7 @@ class AppColors {
   static const Color gold = Color(0xFFC9A84C);
 
   static const Color navy = Color(0xFF07111F);
-  static const Color navyMid = Color(0xFF0d2240);
+  static const Color navyMid = Color.fromARGB(225, 13, 34, 64);
   static const Color navyLight = Color(0xFF1b4a89);
   static const Color navyCard = Color(0xFF102035);
   static const Color navyInput = Color(0xFF091728);
@@ -29,6 +29,6 @@ class AppColors {
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomCenter,
-    colors: [navyLight, navyMid, navy],
+    colors: [navyLight, navy],
   );
 }
