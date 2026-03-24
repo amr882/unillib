@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
-import 'package:unilib/feature/home/ui/nav_pages/home_screen.dart';
+import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -73,7 +73,7 @@ class _AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 15),
+      padding: EdgeInsets.only(top: 15, bottom: 15),
       decoration: BoxDecoration(
         color: AppColors.navyMid,
         border: Border(top: BorderSide(color: AppColors.navyBorder, width: 1)),
