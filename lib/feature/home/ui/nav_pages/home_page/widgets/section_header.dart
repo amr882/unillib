@@ -4,9 +4,8 @@ import 'package:unilib/core/theme/app_colors.dart';
 
 class SectionHeader extends StatelessWidget {
   final String title;
-  final VoidCallback onSeeAll;
 
-  const SectionHeader({super.key, required this.title, required this.onSeeAll});
+  const SectionHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {
@@ -22,17 +21,6 @@ class SectionHeader extends StatelessWidget {
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
               color: AppColors.navy,
-            ),
-          ),
-          GestureDetector(
-            onTap: onSeeAll,
-            child: Text(
-              'See all →',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: AppColors.blue,
-                fontWeight: FontWeight.w600,
-              ),
             ),
           ),
         ],

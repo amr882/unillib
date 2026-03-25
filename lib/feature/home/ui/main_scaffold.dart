@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
+import 'package:unilib/feature/home/ui/nav_pages/browse_page/browse_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
 
 class MainScaffold extends StatefulWidget {
@@ -26,7 +27,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 0:
         return const HomeScreen();
       case 1:
-        return const _PlaceholderScreen(label: 'Browse');
+        return const BrowseScreen();
       case 2:
         return const _PlaceholderScreen(label: 'AI Assistant');
       case 3:

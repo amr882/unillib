@@ -42,32 +42,29 @@ class BookHeader extends StatelessWidget {
 
             SizedBox(height: 1.h),
 
-            // ── Hero Cover ──────────────────────────
-            Hero(
-              tag: book.id,
-              child: Container(
-                height: 20.h,
-                width: 30.w,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: book.coverUrl != '??'
-                      ? Image.network(
-                          book.coverUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _CoverFallback(),
-                        )
-                      : _CoverFallback(),
-                ),
+            // cover, title, author, stats
+            Container(
+              height: 20.h,
+              width: 30.w,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: book.coverUrl != '??'
+                    ? Image.network(
+                        book.coverUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => _CoverFallback(),
+                      )
+                    : _CoverFallback(),
               ),
             ),
 

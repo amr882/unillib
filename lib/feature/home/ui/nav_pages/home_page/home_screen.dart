@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -43,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SectionHeader(title: 'Trending This Week', onSeeAll: () {}),
+                  SectionHeader(title: 'Trending This Week'),
                   SizedBox(height: 1.5.h),
 
                   if (books.isLoading)
@@ -97,12 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
-                        child: Hero(
-                          tag: books.trending[index].id,
-                          child: TrendingBookTile(
-                            rank: index + 1,
-                            book: books.trending[index],
-                          ),
+                        child: TrendingBookTile(
+                          rank: index + 1,
+                          book: books.trending[index],
                         ),
                       ),
                     ),
