@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/logic/book_provider.dart';
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
@@ -22,7 +23,11 @@ class _BrowseScreenState extends State<BrowseScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<BooksProvider>().fetchAllBooks());
+    Future.microtask(() {
+      final booksProvider = context.read<BooksProvider>();
+      booksProvider.releaseExpiredReservations();
+      booksProvider.fetchAllBooks();
+    });
   }
 
   @override
@@ -164,12 +169,26 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     itemBuilder: (context, index) {
                       final book = displayList[index];
                       return GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BookScreen(book: book),
-                          ),
-                        ),
+                        onTap: () {
+                          final userProvider = context.read<UserProvider>();
+                          final booksProvider = context.read<BooksProvider>();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => MultiProvider(
+                                providers: [
+                                  ChangeNotifierProvider.value(
+                                    value: userProvider,
+                                  ),
+                                  ChangeNotifierProvider.value(
+                                    value: booksProvider,
+                                  ),
+                                ],
+                                child: BookScreen(book: book),
+                              ),
+                            ),
+                          );
+                        },
                         child: Hero(
                           tag: book.id,
                           child: BrowseBookTile(book: book),

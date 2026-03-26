@@ -1,28 +1,86 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
+import 'package:unilib/feature/home/logic/book_provider.dart';
 import 'package:unilib/feature/home/ui/book/widgets/action_buttons.dart';
 import 'package:unilib/feature/home/ui/book/widgets/details.dart';
 import 'package:unilib/feature/home/ui/book/widgets/header.dart';
 import 'package:unilib/feature/home/ui/book/widgets/location.dart';
 import 'package:unilib/feature/home/ui/book/widgets/tags.dart';
 
-class BookScreen extends StatelessWidget {
+class BookScreen extends StatefulWidget {
   final Book book;
   const BookScreen({super.key, required this.book});
 
   @override
+  State<BookScreen> createState() => _BookScreenState();
+}
+
+class _BookScreenState extends State<BookScreen> {
+  bool _isLoading = false;
+  late bool _alreadyBorrowed;
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = context.read<UserProvider>().user?.id ?? '';
+    _alreadyBorrowed = widget.book.reservedBy.contains(userId);
+  }
+
+  Future<void> _handleBorrow() async {
+    final userId = context.read<UserProvider>().user?.id ?? '';
+    if (userId.isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    final success = _alreadyBorrowed
+        ? await context.read<BooksProvider>().returnBook(
+            bookId: widget.book.id,
+            userId: userId,
+          )
+        : await context.read<BooksProvider>().borrowBook(
+            bookId: widget.book.id,
+            userId: userId,
+          );
+
+    if (!mounted) return;
+
+    if (success) {
+      setState(() {
+        _alreadyBorrowed = !_alreadyBorrowed;
+        _isLoading = false;
+      });
+    } else {
+      setState(() => _isLoading = false);
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: success ? AppColors.gold : Colors.redAccent,
+        content: Text(
+          success
+              ? (_alreadyBorrowed ? 'Book returned!' : 'Book borrowed!')
+              : context.read<BooksProvider>().error ?? 'Something went wrong.',
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: AppColors.navy,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          // ── Hero Header ────────────────────────────────
-          SliverToBoxAdapter(child: BookHeader(book: book)),
-
-          // ── White Body ─────────────────────────────────
+          SliverToBoxAdapter(child: BookHeader(book: widget.book)),
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -37,43 +95,35 @@ class BookScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // About
                     _SectionTitle(title: 'About this Resource'),
                     SizedBox(height: 1.h),
                     Text(
-                      book.description,
+                      widget.book.description,
                       style: TextStyle(
                         fontSize: 13.sp,
                         color: AppColors.textMuted,
                         height: 1.6,
                       ),
                     ),
-
                     SizedBox(height: 3.h),
-
-                    // Details row
-                    BookDetailsRow(book: book),
-
+                    BookDetailsRow(book: widget.book),
                     SizedBox(height: 3.h),
-
-                    // Tags
-                    if (book.tags.isNotEmpty) ...[
+                    if (widget.book.tags.isNotEmpty) ...[
                       _SectionTitle(title: 'Tags'),
                       SizedBox(height: 1.h),
-                      TagsRow(tags: book.tags),
+                      TagsRow(tags: widget.book.tags),
                       SizedBox(height: 3.h),
                     ],
-
-                    // Location
                     _SectionTitle(title: 'Location'),
                     SizedBox(height: 1.h),
-                    LocationCard(book: book),
-
+                    LocationCard(book: widget.book),
                     SizedBox(height: 4.h),
-
-                    // Action buttons
-                    ActionButtons(book: book),
-
+                    ActionButtons(
+                      book: widget.book,
+                      isLoading: _isLoading,
+                      alreadyBorrowed: _alreadyBorrowed,
+                      onBorrowTap: _handleBorrow,
+                    ),
                     SizedBox(height: 2.h),
                   ],
                 ),

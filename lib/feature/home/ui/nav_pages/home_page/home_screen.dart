@@ -91,11 +91,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (_, _) => SizedBox(height: 1.5.h),
                       itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
+                          final userProvider = context.read<UserProvider>();
+                          final booksProvider = context.read<BooksProvider>();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  BookScreen(book: books.trending[index]),
+                              builder: (_) => MultiProvider(
+                                providers: [
+                                  ChangeNotifierProvider.value(
+                                      value: userProvider),
+                                  ChangeNotifierProvider.value(
+                                      value: booksProvider),
+                                ],
+                                child: BookScreen(
+                                    book: books.trending[index]),
+                              ),
                             ),
                           );
                         },

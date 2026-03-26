@@ -62,6 +62,21 @@ class BookHeader extends StatelessWidget {
                     ? Image.network(
                         book.coverUrl,
                         fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          final total = loadingProgress.expectedTotalBytes;
+                          final loaded = loadingProgress.cumulativeBytesLoaded;
+                          return Container(
+                            color: AppColors.navyCard,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: total != null ? loaded / total : null,
+                                color: AppColors.gold,
+                                strokeWidth: 2.5,
+                              ),
+                            ),
+                          );
+                        },
                         errorBuilder: (_, _, _) => _CoverFallback(),
                       )
                     : _CoverFallback(),

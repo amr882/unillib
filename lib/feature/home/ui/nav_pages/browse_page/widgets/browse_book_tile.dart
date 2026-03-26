@@ -1,4 +1,5 @@
 // widgets/browse_book_tile.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
@@ -32,10 +33,16 @@ class BrowseBookTile extends StatelessWidget {
               width: 15.w,
               height: 10.5.h,
               child: book.coverUrl != '??'
-                  ? Image.network(
-                      book.coverUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _fallback(),
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => _fallback(),
                     )
                   : _fallback(),
             ),

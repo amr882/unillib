@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
@@ -51,10 +52,16 @@ class TrendingBookTile extends StatelessWidget {
                   book.coverUrl.isNotEmpty &&
                       book.coverUrl != '??' &&
                       book.coverUrl != "NO_IMAGE_PLACEHOLDER"
-                  ? Image.network(
-                      book.coverUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: book.coverUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, _, _) => _CoverFallback(),
+                      placeholder: (context, url) => Container(
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => _CoverFallback(),
                     )
                   : _CoverFallback(),
             ),
