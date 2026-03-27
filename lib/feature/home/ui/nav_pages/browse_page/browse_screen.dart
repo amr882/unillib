@@ -6,7 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/feature/home/logic/book_provider.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'widgets/browse_search_bar.dart';
 import 'widgets/browse_book_tile.dart';
@@ -24,30 +25,28 @@ class _BrowseScreenState extends State<BrowseScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      final booksProvider = context.read<BooksProvider>();
-      booksProvider.releaseExpiredReservations();
-      booksProvider.fetchAllBooks();
+      context.read<UserBooksProvider>().releaseExpiredReservations();
+      context.read<BookCatalogProvider>().fetchAllBooks();
     });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-
     super.dispose();
   }
 
   void _onSearch(String query) {
     if (query.trim().isEmpty) {
-      context.read<BooksProvider>().clearSearch();
+      context.read<BookCatalogProvider>().clearSearch();
     } else {
-      context.read<BooksProvider>().searchBooks(query);
+      context.read<BookCatalogProvider>().searchBooks(query);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final books = context.watch<BooksProvider>();
+    final books = context.watch<BookCatalogProvider>();
     final isSearching = _searchController.text.trim().isNotEmpty;
     final displayList = isSearching ? books.searchResults : books.allBooks;
 
@@ -55,13 +54,13 @@ class _BrowseScreenState extends State<BrowseScreen> {
       backgroundColor: AppColors.backGround,
       body: Column(
         children: [
-          // ── Fixed Top Card ──────────────────────────
+          // ── Dark gradient header ──────────────────────
           Container(
             decoration: const BoxDecoration(
               gradient: AppColors.backgroundGradient,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15),
+                bottomLeft: Radius.circular(13),
+                bottomRight: Radius.circular(13),
               ),
             ),
             child: SafeArea(
@@ -72,7 +71,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Browse',
+                      'Browse Resources',
                       style: TextStyle(
                         fontFamily: 'Georgia',
                         fontSize: 18.sp,
@@ -87,11 +86,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       onChanged: _onSearch,
                       onClear: () {
                         _searchController.clear();
-                        context.read<BooksProvider>().clearSearch();
+                        context.read<BookCatalogProvider>().clearSearch();
                         setState(() {});
                       },
                     ),
-
                     SizedBox(height: 1.h),
                   ],
                 ),
@@ -99,26 +97,7 @@ class _BrowseScreenState extends State<BrowseScreen> {
             ),
           ),
 
-          // ── Results count ───────────────────────────
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
-            child: Row(
-              children: [
-                Text(
-                  isSearching
-                      ? '${displayList.length} results for "${_searchController.text}"'
-                      : '${displayList.length} books found',
-                  style: TextStyle(
-                    fontSize: 15.sp,
-                    color: AppColors.textMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // ── Book List ───────────────────────────────
+          // ── Book List ───────────────────────────────────
           Expanded(
             child: books.isLoading || books.isSearching
                 ? const Center(
@@ -171,7 +150,8 @@ class _BrowseScreenState extends State<BrowseScreen> {
                       return GestureDetector(
                         onTap: () {
                           final userProvider = context.read<UserProvider>();
-                          final booksProvider = context.read<BooksProvider>();
+                          final catalogProvider = context.read<BookCatalogProvider>();
+                          final userBooksProvider = context.read<UserBooksProvider>();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -181,7 +161,10 @@ class _BrowseScreenState extends State<BrowseScreen> {
                                     value: userProvider,
                                   ),
                                   ChangeNotifierProvider.value(
-                                    value: booksProvider,
+                                    value: catalogProvider,
+                                  ),
+                                  ChangeNotifierProvider.value(
+                                    value: userBooksProvider,
                                   ),
                                 ],
                                 child: BookScreen(book: book),

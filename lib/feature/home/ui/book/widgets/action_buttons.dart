@@ -69,7 +69,6 @@ class _ActionButtonsState extends State<ActionButtons>
 
   @override
   Widget build(BuildContext context) {
-    // After borrowing the button becomes grey & unclickable
     final bool isBorrowed = widget.alreadyBorrowed;
     final Color btnColor = isBorrowed
         ? const Color(0xFFB0BEC5)
@@ -78,7 +77,6 @@ class _ActionButtonsState extends State<ActionButtons>
 
     return Column(
       children: [
-        // ── Borrow / Borrowed ────────────────────────────
         GestureDetector(
           onTap: canTap ? _showBorrowConfirm : null,
           child: AnimatedContainer(

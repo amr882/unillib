@@ -24,7 +24,7 @@ class BrowseSearchBar extends StatelessWidget {
         height: 6.h,
         decoration: BoxDecoration(
           color: AppColors.navyInput,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(13),
           border: Border.all(color: AppColors.navyBorder, width: 1),
         ),
         child: Row(
@@ -38,7 +38,7 @@ class BrowseSearchBar extends StatelessWidget {
                 onChanged: onChanged,
                 style: AppTextStyles.inputText,
                 decoration: InputDecoration(
-                  hintText: 'Search by title or author...',
+                  hintText: 'Search resources...',
                   hintStyle: AppTextStyles.hintText,
                   border: InputBorder.none,
                   isDense: true,

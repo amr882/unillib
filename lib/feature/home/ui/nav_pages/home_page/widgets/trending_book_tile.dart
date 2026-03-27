@@ -14,40 +14,27 @@ class TrendingBookTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.5.h),
+      padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Rank
-          SizedBox(
-            width: 8.w,
-            child: Text(
-              rank.toString().padLeft(2, '0'),
-              style: TextStyle(
-                fontFamily: 'Georgia',
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w700,
-                color: AppColors.gold,
-              ),
-            ),
-          ),
-
           // Cover
           ClipRRect(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              width: 15.w,
-              height: 10.5.h,
+              width: 16.w,
+              height: 11.h,
               child:
                   book.coverUrl.isNotEmpty &&
                       book.coverUrl != '??' &&
@@ -74,6 +61,7 @@ class TrendingBookTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title
                 Text(
                   book.title,
                   maxLines: 2,
@@ -86,38 +74,92 @@ class TrendingBookTile extends StatelessWidget {
                     height: 1.3,
                   ),
                 ),
-                SizedBox(height: 0.4.h),
+                SizedBox(height: 0.3.h),
+
+                // Author
                 Text(
-                  '${book.author} · ${book.category}',
+                  book.author,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColors.textMuted,
+                  ),
+                ),
+                SizedBox(height: 0.8.h),
+
+                // Category chips
+                Wrap(
+                  spacing: 1.5.w,
+                  runSpacing: 0.5.h,
+                  children: _buildChips(),
+                ),
+                SizedBox(height: 0.8.h),
+
+                // Availability
+                Row(
+                  children: [
+                    Icon(
+                      book.isAvailable
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.cancel_outlined,
+                      size: 1.8.h,
+                      color: book.isAvailable
+                          ? const Color(0xFF2E7D32)
+                          : Colors.red,
+                    ),
+                    SizedBox(width: 1.w),
+                    Text(
+                      book.isAvailable ? 'Available' : 'Unavailable',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
+                        color: book.isAvailable
+                            ? const Color(0xFF2E7D32)
+                            : Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-
-          SizedBox(width: 2.w),
-
-          // Badge
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
-            decoration: BoxDecoration(
-              color: book.isAvailable
-                  ? Colors.green.withOpacity(0.1)
-                  : Colors.red.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              book.isAvailable ? 'Available' : 'Borrowed',
-              style: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w600,
-                color: book.isAvailable ? Colors.green : Colors.red,
-              ),
-            ),
-          ),
         ],
+      ),
+    );
+  }
+
+  List<Widget> _buildChips() {
+    final chips = <Widget>[];
+
+    if (book.category != '??') {
+      chips.add(_chip(book.category, AppColors.blue));
+    }
+
+    if (book.tags.isNotEmpty) {
+      chips.add(_chip(book.tags.first, AppColors.navy));
+    } else if (book.faculty != '??' && book.category != book.faculty) {
+      final label = book.facultySlug != '??' ? book.facultySlug : book.faculty;
+      chips.add(_chip(label, AppColors.navy));
+    }
+
+    return chips;
+  }
+
+  Widget _chip(String label, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.3.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }

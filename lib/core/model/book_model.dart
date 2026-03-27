@@ -52,6 +52,7 @@ class Book {
   final bool isAvailable;
   final List<String> tags;
   final List<dynamic> reservedBy;
+  final List<dynamic> borrowedBy;
   final BookLocation location;
 
   Book({
@@ -78,6 +79,7 @@ class Book {
     required this.isAvailable,
     required this.tags,
     required this.reservedBy,
+    required this.borrowedBy,
     required this.location,
   });
 
@@ -147,6 +149,7 @@ class Book {
           (map['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
           [],
       reservedBy: map['reserved_by'] as List<dynamic>? ?? [],
+      borrowedBy: map['borrowed_by'] as List<dynamic>? ?? [],
       location: map['location'] != null
           ? BookLocation.fromMap(
               Map<String, dynamic>.from(map['location'] as Map),
@@ -180,6 +183,7 @@ class Book {
       'is_available': isAvailable,
       'tags': tags,
       'reserved_by': reservedBy,
+      'borrowed_by': borrowedBy,
       'location': location.toMap(),
     };
   }
@@ -208,6 +212,7 @@ class Book {
     bool? isAvailable,
     List<String>? tags,
     List<dynamic>? reservedBy,
+    List<dynamic>? borrowedBy,
     BookLocation? location,
   }) {
     return Book(
@@ -234,6 +239,7 @@ class Book {
       isAvailable: isAvailable ?? this.isAvailable,
       tags: tags ?? this.tags,
       reservedBy: reservedBy ?? this.reservedBy,
+      borrowedBy: borrowedBy ?? this.borrowedBy,
       location: location ?? this.location,
     );
   }

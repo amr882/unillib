@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/feature/home/logic/book_provider.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'widgets/home_top_card.dart';
 import 'widgets/section_header.dart';
@@ -22,13 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<BooksProvider>().fetchTrending());
+    Future.microtask(() => context.read<BookCatalogProvider>().fetchTrending());
   }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<UserProvider>().user;
-    final books = context.watch<BooksProvider>();
+    final books = context.watch<BookCatalogProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.backGround,
@@ -92,7 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
                           final userProvider = context.read<UserProvider>();
-                          final booksProvider = context.read<BooksProvider>();
+                          final catalogProvider = context.read<BookCatalogProvider>();
+                          final userBooksProvider = context.read<UserBooksProvider>();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -101,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ChangeNotifierProvider.value(
                                       value: userProvider),
                                   ChangeNotifierProvider.value(
-                                      value: booksProvider),
+                                      value: catalogProvider),
+                                  ChangeNotifierProvider.value(
+                                      value: userBooksProvider),
                                 ],
                                 child: BookScreen(
                                     book: books.trending[index]),

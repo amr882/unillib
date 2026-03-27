@@ -6,7 +6,7 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/feature/home/logic/book_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/book/widgets/action_buttons.dart';
 import 'package:unilib/feature/home/ui/book/widgets/details.dart';
 import 'package:unilib/feature/home/ui/book/widgets/header.dart';
@@ -29,7 +29,7 @@ class _BookScreenState extends State<BookScreen> {
   void initState() {
     super.initState();
     final userId = context.read<UserProvider>().user?.id ?? '';
-    _alreadyBorrowed = widget.book.reservedBy.contains(userId);
+    _alreadyBorrowed = widget.book.borrowedBy.contains(userId);
   }
 
   Future<void> _handleBorrow() async {
@@ -39,11 +39,11 @@ class _BookScreenState extends State<BookScreen> {
     setState(() => _isLoading = true);
 
     final success = _alreadyBorrowed
-        ? await context.read<BooksProvider>().returnBook(
+        ? await context.read<UserBooksProvider>().returnBook(
             bookId: widget.book.id,
             userId: userId,
           )
-        : await context.read<BooksProvider>().borrowBook(
+        : await context.read<UserBooksProvider>().borrowBook(
             bookId: widget.book.id,
             userId: userId,
           );
@@ -65,7 +65,7 @@ class _BookScreenState extends State<BookScreen> {
         content: Text(
           success
               ? (_alreadyBorrowed ? 'Book returned!' : 'Book borrowed!')
-              : context.read<BooksProvider>().error ?? 'Something went wrong.',
+              : context.read<UserBooksProvider>().error ?? 'Something went wrong.',
           style: const TextStyle(color: Colors.white),
         ),
       ),

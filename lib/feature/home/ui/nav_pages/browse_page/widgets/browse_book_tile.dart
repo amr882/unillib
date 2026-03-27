@@ -19,19 +19,20 @@ class BrowseBookTile extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
+            blurRadius: 10,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Cover
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              width: 15.w,
-              height: 10.5.h,
+              width: 16.w,
+              height: 11.h,
               child: book.coverUrl != '??'
                   ? CachedNetworkImage(
                       imageUrl: book.coverUrl,
@@ -55,76 +56,62 @@ class BrowseBookTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Title
                 Text(
                   book.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontFamily: 'Georgia',
-                    fontSize: 16.sp,
+                    fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
                     color: AppColors.navy,
                     height: 1.3,
                   ),
                 ),
-                SizedBox(height: 0.5.h),
+                SizedBox(height: 0.3.h),
+
+                // Author
                 Text(
                   book.author,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
-                ),
-                SizedBox(height: 0.5.h),
-                Text(
-                  '${book.faculty}  ·  ${book.year}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColors.textMuted,
+                  ),
                 ),
                 SizedBox(height: 0.8.h),
+
+                // Category chips
+                Wrap(
+                  spacing: 1.5.w,
+                  runSpacing: 0.5.h,
+                  children: _buildChips(),
+                ),
+                SizedBox(height: 0.8.h),
+
+                // Availability
                 Row(
                   children: [
-                    // Category chip
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 2.w,
-                        vertical: 0.3.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.blue.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        book.category,
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: AppColors.blue,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    Icon(
+                      book.isAvailable
+                          ? Icons.check_circle_outline_rounded
+                          : Icons.cancel_outlined,
+                      size: 1.8.h,
+                      color: book.isAvailable
+                          ? const Color(0xFF2E7D32)
+                          : Colors.red,
                     ),
-                    const Spacer(),
-                    // Availability badge
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 2.w,
-                        vertical: 0.3.h,
-                      ),
-                      decoration: BoxDecoration(
+                    SizedBox(width: 1.w),
+                    Text(
+                      book.isAvailable ? 'Available' : 'Unavailable',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w600,
                         color: book.isAvailable
-                            ? Colors.green.withOpacity(0.1)
-                            : Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        book.isAvailable
-                            ? '${book.availableCopies} available'
-                            : 'Unavailable',
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: book.isAvailable ? Colors.green : Colors.red,
-                        ),
+                            ? const Color(0xFF2E7D32)
+                            : Colors.red,
                       ),
                     ),
                   ],
@@ -133,6 +120,44 @@ class BrowseBookTile extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  List<Widget> _buildChips() {
+    final chips = <Widget>[];
+
+    // Category chip
+    if (book.category != '??') {
+      chips.add(_chip(book.category, AppColors.blue));
+    }
+
+    // First tag as second chip (if available)
+    if (book.tags.isNotEmpty) {
+      chips.add(_chip(book.tags.first, AppColors.navy));
+    } else if (book.faculty != '??' && book.category != book.faculty) {
+      // Fallback: use faculty slug or short faculty name
+      final label = book.facultySlug != '??' ? book.facultySlug : book.faculty;
+      chips.add(_chip(label, AppColors.navy));
+    }
+
+    return chips;
+  }
+
+  Widget _chip(String label, Color color) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.3.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11.sp,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
