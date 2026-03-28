@@ -1,9 +1,13 @@
 import 'package:device_preview/device_preview.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/routes/app_router.dart';
 import 'package:unilib/core/routes/routes.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
 
 class UniLib extends StatefulWidget {
   final AppRouter appRouter;
@@ -29,28 +33,37 @@ class _UniLibState extends State<UniLib> {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) {
-        return MaterialApp(
-          useInheritedMediaQuery: true,
-          locale: DevicePreview.locale(context),
-          builder: DevicePreview.appBuilder,
+        return MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => UserProvider()),
+            ChangeNotifierProvider(create: (_) => BookCatalogProvider()),
+            ChangeNotifierProxyProvider<BookCatalogProvider, UserBooksProvider>(
+              create: (ctx) => UserBooksProvider(ctx.read<BookCatalogProvider>()),
+              update: (_, catalog, prev) => prev ?? UserBooksProvider(catalog),
+            ),
+          ],
+          child: MaterialApp(
+            useInheritedMediaQuery: true,
+            locale: DevicePreview.locale(context),
+            builder: DevicePreview.appBuilder,
+            theme: ThemeData(scaffoldBackgroundColor: Colors.white),
+            debugShowCheckedModeBanner: false,
+            title: 'Unilib',
+            onGenerateRoute: widget.appRouter.generateRoute,
+            home: FutureBuilder<User?>(
+              future: _authFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState != ConnectionState.done) {
+                  return const _SplashScreen();
+                }
 
-          theme: ThemeData(scaffoldBackgroundColor: Colors.white),
-          debugShowCheckedModeBanner: false,
-          title: 'Unilib',
-          onGenerateRoute: widget.appRouter.generateRoute,
-          home: FutureBuilder<User?>(
-            future: _authFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState != ConnectionState.done) {
-                return const _SplashScreen();
-              }
+                if (snapshot.data != null) {
+                  return const _Redirect(route: Routes.mainScaffold);
+                }
 
-              if (snapshot.data != null) {
-                return const _Redirect(route: Routes.mainScaffold);
-              }
-
-              return const _Redirect(route: Routes.loginScreen);
-            },
+                return const _Redirect(route: Routes.loginScreen);
+              },
+            ),
           ),
         );
       },

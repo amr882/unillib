@@ -6,7 +6,7 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
-import 'package:unilib/feature/home/logic/user_books_provider.dart';
+
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'widgets/home_top_card.dart';
 import 'widgets/section_header.dart';
@@ -92,24 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (_, _) => SizedBox(height: 1.5.h),
                       itemBuilder: (context, index) => GestureDetector(
                         onTap: () {
-                          final userProvider = context.read<UserProvider>();
-                          final catalogProvider = context.read<BookCatalogProvider>();
-                          final userBooksProvider = context.read<UserBooksProvider>();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => MultiProvider(
-                                providers: [
-                                  ChangeNotifierProvider.value(
-                                      value: userProvider),
-                                  ChangeNotifierProvider.value(
-                                      value: catalogProvider),
-                                  ChangeNotifierProvider.value(
-                                      value: userBooksProvider),
-                                ],
-                                child: BookScreen(
-                                    book: books.trending[index]),
-                              ),
+                              builder: (_) => BookScreen(book: books.trending[index]),
                             ),
                           );
                         },

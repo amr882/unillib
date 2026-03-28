@@ -4,6 +4,7 @@ import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 import 'package:unilib/feature/home/ui/nav_pages/browse_page/browse_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
+import 'package:unilib/feature/home/ui/nav_pages/profile_page/profile_screen.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -31,7 +32,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 2:
         return const _PlaceholderScreen(label: 'AI Assistant');
       case 3:
-        return const _PlaceholderScreen(label: 'Profile');
+        return const ProfileScreen();
       default:
         return const HomeScreen();
     }
@@ -48,7 +49,9 @@ class _MainScaffoldState extends State<MainScaffold> {
       bottomNavigationBar: _AppBottomNavBar(
         currentIndex: _currentIndex,
         items: _navItems,
-        onTap: (i) => setState(() => _currentIndex = i),
+        onTap: (i) {
+          setState(() => _currentIndex = i);
+        },
       ),
     );
   }

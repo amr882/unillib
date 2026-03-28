@@ -132,6 +132,7 @@ class UserBooksProvider extends ChangeNotifier {
       await _firestore.collection('books').doc(bookId).update({
         'borrowed_by': FieldValue.arrayRemove([userId]),
         'available_copies': FieldValue.increment(1),
+        'reservations.$userId': FieldValue.delete(),
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: false);

@@ -8,8 +8,14 @@ import 'package:unilib/core/theme/app_colors.dart';
 class TrendingBookTile extends StatelessWidget {
   final int rank;
   final Book book;
+  final Widget? trailingWidget;
 
-  const TrendingBookTile({super.key, required this.rank, required this.book});
+  const TrendingBookTile({
+    super.key,
+    required this.rank,
+    required this.book,
+    this.trailingWidget,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -124,6 +130,10 @@ class TrendingBookTile extends StatelessWidget {
               ],
             ),
           ),
+          if (trailingWidget != null) ...[
+            SizedBox(width: 2.w),
+            trailingWidget!,
+          ],
         ],
       ),
     );
