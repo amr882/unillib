@@ -62,7 +62,6 @@ class BrowseBookTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontFamily: 'Georgia',
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
                     color: AppColors.navy,

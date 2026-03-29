@@ -73,7 +73,6 @@ class _BrowseScreenState extends State<BrowseScreen> {
                     Text(
                       'Browse Resources',
                       style: TextStyle(
-                        fontFamily: 'Georgia',
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w700,
                         color: AppColors.white,

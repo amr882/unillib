@@ -17,7 +17,6 @@ class SectionHeader extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              fontFamily: 'Georgia',
               fontSize: 14.sp,
               fontWeight: FontWeight.w700,
               color: AppColors.navy,

@@ -38,7 +38,6 @@ class ProfileScreen extends StatelessWidget {
                   child: Text(
                     'My Profile',
                     style: TextStyle(
-                      fontFamily: 'Georgia',
                       fontSize: 20.sp,
                       fontWeight: FontWeight.w700,
                       color: AppColors.white,

@@ -84,7 +84,6 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
                   Text(
                     'Cancel Borrow',
                     style: TextStyle(
-                      fontFamily: 'Georgia',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: AppColors.navy,
@@ -194,7 +193,6 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
         Text(
           'My Borrowed Books',
           style: TextStyle(
-            fontFamily: 'Georgia',
             fontSize: 16.sp,
             fontWeight: FontWeight.w700,
             color: AppColors.navy,

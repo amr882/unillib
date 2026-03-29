@@ -92,7 +92,6 @@ class BookHeader extends StatelessWidget {
                 book.title,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'Georgia',
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,

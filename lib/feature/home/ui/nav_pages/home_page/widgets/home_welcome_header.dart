@@ -26,7 +26,6 @@ class HomeWelcomeHeader extends StatelessWidget {
             Text(
               userName,
               style: TextStyle(
-                fontFamily: 'Georgia',
                 fontSize: 18.sp,
                 color: AppColors.white,
                 fontWeight: FontWeight.w700,

@@ -204,7 +204,6 @@ class _BorrowConfirmDialog extends StatelessWidget {
               Text(
                 'Confirm Borrow',
                 style: TextStyle(
-                  fontFamily: 'Georgia',
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: AppColors.navy,

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/core/theme/app_text_styles.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/generative_ai.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_message.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/user_message.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_app_bar.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_input_field.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/typing_indicator.dart';
 
 class AiAssistant extends StatefulWidget {
   const AiAssistant({super.key});
@@ -34,23 +36,37 @@ class _AiAssistantState extends State<AiAssistant> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Analyze Document', style: TextStyle(color: AppColors.navy)),
+        title: const Text(
+          'Analyze Document',
+          style: TextStyle(color: AppColors.navy900),
+        ),
         content: TextField(
           controller: docIdController,
-          decoration: const InputDecoration(hintText: 'Enter Firestore Document ID'),
+          decoration: const InputDecoration(
+            hintText: 'Enter Firestore Document ID',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AppColors.textSub)),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSub),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.gold500),
             onPressed: () {
               Navigator.pop(context);
               _analyzeDocument(docIdController.text);
             },
-            child: const Text('Analyze', style: TextStyle(color: AppColors.white)),
+            child: const Text(
+              'Analyze',
+              style: TextStyle(
+                color: AppColors.navy900,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
@@ -64,12 +80,42 @@ class _AiAssistantState extends State<AiAssistant> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(e.toString()),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
       );
     }
+  }
+
+  Widget _buildSuggestionChips() {
+    final chips = ['✨ Summarize', '📝 Write', '🔍 Research'];
+    return Padding(
+      padding: EdgeInsets.only(left: 10.w, bottom: 1.5.h),
+      child: Wrap(
+        spacing: 2.w,
+        children: chips
+            .map(
+              (label) => Container(
+                padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 0.7.h),
+                decoration: BoxDecoration(
+                  color: AppColors.gold500.withOpacity(0.06),
+                  border: Border.all(
+                    color: AppColors.gold500.withOpacity(0.25),
+                    width: 0.5,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.gold500,
+                    fontSize: 11.sp,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
   }
 
   @override
@@ -77,119 +123,74 @@ class _AiAssistantState extends State<AiAssistant> {
     final aiProvider = context.watch<GenerativeAiProvider>();
 
     return Scaffold(
-      backgroundColor: AppColors.backGround,
-      body: Column(
+      backgroundColor: AppColors.navy900,
+      body: Stack(
         children: [
-          // Header Gradient with Title
-          Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: AppColors.backgroundGradient,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(13),
-                bottomRight: Radius.circular(13),
-              ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(5.w, 4.h, 5.w, 3.h),
-                child: Center(
-                  child: Text(
-                    'AI Assistant',
-                    style: TextStyle(
-                      fontFamily: 'Georgia',
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                      letterSpacing: 0.3,
-                    ),
+          // Ambient gold glow at top
+          Positioned(
+            top: -8.h,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: 50.w,
+                height: 50.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      AppColors.gold500.withOpacity(0.08),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
             ),
           ),
-          if (aiProvider.messages.isEmpty)
-            const Expanded(
-              child: Center(
-                child: Text(
-                  "How can I help you today?",
-                  style: AppTextStyles.heading,
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 2.h),
-                itemCount: aiProvider.messages.length,
-                itemBuilder: (context, index) {
-                  final msg = aiProvider.messages[index];
-                  return msg.isUser
-                      ? UserMessage(msg: msg.text)
-                      : AiMessage(msg: msg.text);
-                },
-              ),
-            ),
-          if (aiProvider.isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(color: AppColors.gold),
-            ),
-          if (aiProvider.errorMessage != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                aiProvider.errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
+
+          SafeArea(
+            child: Column(
               children: [
+                const AiChatHeader(),
                 Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    style: const TextStyle(color: AppColors.navy),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: AppColors.white,
-                      hintText: 'Ask AI...',
-                      hintStyle: const TextStyle(color: AppColors.textSub),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24.0),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 14.0,
-                      ),
+                  child: ListView(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 4.w,
+                      vertical: 2.h,
                     ),
-                    onSubmitted: (_) => _sendMessage(),
+                    children: [
+                      if (aiProvider.messages.isEmpty) ...[
+                        SizedBox(height: 2.h),
+                        const AiMessage(
+                          msg:
+                              "Hello! I'm Aura, your personal AI assistant. How can I help you today?",
+                          timeText: "Now",
+                        ),
+                        SizedBox(height: 1.5.h),
+                        _buildSuggestionChips(),
+                      ] else ...[
+                        ...aiProvider.messages.map((msg) {
+                          return msg.isUser
+                              ? UserMessage(msg: msg.text)
+                              : AiMessage(msg: msg.text);
+                        }),
+                      ],
+                      if (aiProvider.isLoading) const TypingIndicator(),
+                      if (aiProvider.errorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            aiProvider.errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.navy,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.description, color: AppColors.white, size: 20),
-                    onPressed: _showAnalyzeDialog,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.gold,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: AppColors.white, size: 20),
-                    onPressed: _sendMessage,
-                  ),
+                AiChatInputField(
+                  controller: _controller,
+                  onSend: _sendMessage,
+                  onAddPressed: _showAnalyzeDialog,
                 ),
               ],
             ),

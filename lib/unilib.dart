@@ -1,4 +1,5 @@
 import 'package:device_preview/device_preview.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -48,7 +49,10 @@ class _UniLibState extends State<UniLib> {
             useInheritedMediaQuery: true,
             locale: DevicePreview.locale(context),
             builder: DevicePreview.appBuilder,
-            theme: ThemeData(scaffoldBackgroundColor: Colors.white),
+            theme: ThemeData(
+              scaffoldBackgroundColor: Colors.white,
+              fontFamily: GoogleFonts.dmSans().fontFamily,
+            ),
             debugShowCheckedModeBanner: false,
             title: 'Unilib',
             onGenerateRoute: widget.appRouter.generateRoute,

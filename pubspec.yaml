@@ -45,6 +45,7 @@ dependencies:
   cloud_firestore: ^6.2.0
   cached_network_image: ^3.4.1
   google_generative_ai: ^0.4.7
+  google_fonts: ^8.0.2
 
 dev_dependencies:
   flutter_test:

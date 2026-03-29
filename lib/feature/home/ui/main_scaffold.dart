@@ -130,7 +130,6 @@ class _AppBottomNavBar extends StatelessWidget {
                           item.label,
                           style: TextStyle(
                             fontSize: 13.sp,
-                            fontFamily: 'Georgia',
                             color: isSelected
                                 ? AppColors.gold
                                 : AppColors.textMuted,
