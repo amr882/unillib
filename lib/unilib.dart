@@ -9,7 +9,7 @@ import 'package:unilib/core/routes/app_router.dart';
 import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
-import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/generative_ai.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
 
 class UniLib extends StatefulWidget {
   final AppRouter appRouter;

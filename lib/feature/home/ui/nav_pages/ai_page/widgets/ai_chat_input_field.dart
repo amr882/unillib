@@ -5,15 +5,11 @@ import 'package:unilib/core/theme/app_colors.dart';
 class AiChatInputField extends StatelessWidget {
   final TextEditingController controller;
   final VoidCallback onSend;
-  final VoidCallback? onAddPressed;
-
   const AiChatInputField({
     super.key,
     required this.controller,
     required this.onSend,
-    this.onAddPressed,
   });
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -27,16 +23,7 @@ class AiChatInputField extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Attach button
-          Padding(
-            padding: EdgeInsets.only(bottom: 0.5.h),
-            child: GestureDetector(
-              onTap: onAddPressed,
-              child: _buildActionContainer(icon: Icons.attach_file),
-            ),
-          ),
 
-          SizedBox(width: 2.w),
 
           // Text field
           Expanded(
@@ -104,8 +91,8 @@ class AiChatInputField extends StatelessWidget {
               ),
               child: Center(
                 child: Icon(
-                  Icons.arrow_upward_rounded,
-                  color: AppColors.navy900,
+                  Icons.send_rounded,
+                  color: AppColors.white,
                   size: 6.5.w,
                 ),
               ),
@@ -116,27 +103,8 @@ class AiChatInputField extends StatelessWidget {
     );
   }
 
-  Widget _buildActionContainer({required IconData icon}) {
-    return Container(
-      width: 12.w,
-      height: 12.w,
-      decoration: BoxDecoration(
-        color: AppColors.gold500.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.gold500.withOpacity(0.3),
-          width: 0.5,
-        ),
-      ),
-      child: Center(
-        child: Transform.rotate(
-          angle: icon == Icons.attach_file ? -0.5 : 0,
-          child: Icon(icon, color: AppColors.gold500, size: 5.5.w),
-        ),
-      ),
-    );
-  }
+
 }
 
-// Playfair Display (serif) — used for the AI assistant name "Aura AI" in the header. It gives that luxury, editorial feel that pairs well with the gold theme.
+// Playfair Display (serif) — used for the AI assistant name "UniLib AI" in the header. It gives that luxury, editorial feel that pairs well with the gold theme.
 // DM Sans — used for all the body text, messages, timestamps, chips, and input placeholder. It's a clean, modern geometric sans-serif that keeps things readable and sleek.

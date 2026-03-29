@@ -10,6 +10,7 @@ import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'widgets/home_top_card.dart';
 import 'widgets/section_header.dart';
+import 'widgets/small_book_card.dart';
 import 'widgets/trending_book_tile.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,7 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => context.read<BookCatalogProvider>().fetchTrending());
+    Future.microtask(() {
+      context.read<BookCatalogProvider>().fetchTrending();
+      context.read<BookCatalogProvider>().fetchRecentlyViewed();
+    });
   }
 
   @override
@@ -46,6 +50,35 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (books.recentlyViewed.isNotEmpty) ...[
+                    SectionHeader(title: 'Recently Viewed'),
+                    SizedBox(height: 1.5.h),
+                    SizedBox(
+                      height: 26.h,
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        scrollDirection: Axis.horizontal,
+                        padding: EdgeInsets.symmetric(horizontal: 5.w),
+                        itemCount: books.recentlyViewed.length,
+                        itemBuilder: (context, index) {
+                          final book = books.recentlyViewed[index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => BookScreen(book: book),
+                                ),
+                              );
+                            },
+                            child: SmallBookCard(book: book),
+                          );
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 3.h),
+                  ],
+
                   SectionHeader(title: 'Trending This Week'),
                   SizedBox(height: 1.5.h),
 
@@ -95,7 +128,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => BookScreen(book: books.trending[index]),
+                              builder: (_) =>
+                                  BookScreen(book: books.trending[index]),
                             ),
                           );
                         },

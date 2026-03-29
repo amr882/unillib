@@ -36,20 +36,6 @@ class AiChatAvatar extends StatelessWidget {
               ),
             ),
           ),
-
-          Positioned(
-            bottom: 1,
-            right: 1,
-            child: Container(
-              width: size * 0.26,
-              height: size * 0.26,
-              decoration: BoxDecoration(
-                color: AppColors.online,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.navy900, width: 2.0),
-              ),
-            ),
-          ),
         ],
       ),
     );

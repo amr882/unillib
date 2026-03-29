@@ -5,7 +5,9 @@ import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_avatar.dart';
 
 class AiChatHeader extends StatelessWidget {
-  const AiChatHeader({super.key});
+  final VoidCallback? onBackPressed;
+
+  const AiChatHeader({super.key, this.onBackPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,9 @@ class AiChatHeader extends StatelessWidget {
           // Back button
           GestureDetector(
             onTap: () {
-              if (Navigator.canPop(context)) {
+              if (onBackPressed != null) {
+                onBackPressed!();
+              } else if (Navigator.canPop(context)) {
                 Navigator.pop(context);
               }
             },
@@ -37,7 +41,7 @@ class AiChatHeader extends StatelessWidget {
               '‹',
               style: TextStyle(
                 color: AppColors.gold500,
-                fontSize: 22.sp,
+                fontSize: 30.sp,
                 fontWeight: FontWeight.w300,
                 height: 1,
               ),
@@ -61,28 +65,6 @@ class AiChatHeader extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
                   ),
-                ),
-                SizedBox(height: 0.3.h),
-                Row(
-                  children: [
-                    Container(
-                      width: 1.5.w,
-                      height: 1.5.w,
-                      decoration: const BoxDecoration(
-                        color: AppColors.online,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    SizedBox(width: 1.w),
-                    Text(
-                      'Active now',
-                      style: TextStyle(
-                        color: AppColors.gold500.withOpacity(0.55),
-                        fontSize: 13.sp,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  ],
                 ),
               ],
             ),

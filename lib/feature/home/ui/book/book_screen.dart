@@ -6,8 +6,10 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/book/widgets/action_buttons.dart';
+import 'package:unilib/feature/home/ui/nav_pages/home_page/widgets/small_book_card.dart';
 import 'package:unilib/feature/home/ui/book/widgets/details.dart';
 import 'package:unilib/feature/home/ui/book/widgets/header.dart';
 import 'package:unilib/feature/home/ui/book/widgets/location.dart';
@@ -25,11 +27,21 @@ class _BookScreenState extends State<BookScreen> {
   bool _isLoading = false;
   late bool _alreadyBorrowed;
 
+  late Future<List<Book>> _relatedFuture;
+
   @override
   void initState() {
     super.initState();
     final userId = context.read<UserProvider>().user?.id ?? '';
     _alreadyBorrowed = widget.book.borrowedBy.contains(userId);
+
+    Future.microtask(() {
+      context.read<BookCatalogProvider>().addRecentlyViewed(widget.book.id);
+    });
+
+    _relatedFuture = context.read<BookCatalogProvider>().getRelatedBooks(
+      widget.book,
+    );
   }
 
   Future<void> _handleBorrow() async {
@@ -65,7 +77,8 @@ class _BookScreenState extends State<BookScreen> {
         content: Text(
           success
               ? (_alreadyBorrowed ? 'Book returned!' : 'Book borrowed!')
-              : context.read<UserBooksProvider>().error ?? 'Something went wrong.',
+              : context.read<UserBooksProvider>().error ??
+                    'Something went wrong.',
           style: const TextStyle(color: Colors.white),
         ),
       ),
@@ -74,7 +87,6 @@ class _BookScreenState extends State<BookScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       backgroundColor: AppColors.navy,
       body: CustomScrollView(
@@ -123,6 +135,57 @@ class _BookScreenState extends State<BookScreen> {
                       isLoading: _isLoading,
                       alreadyBorrowed: _alreadyBorrowed,
                       onBorrowTap: _handleBorrow,
+                    ),
+                    SizedBox(height: 4.h),
+
+                    _SectionTitle(title: 'You might also like'),
+                    SizedBox(height: 1.5.h),
+                    FutureBuilder<List<Book>>(
+                      future: _relatedFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.gold,
+                            ),
+                          );
+                        }
+                        if (snapshot.hasError ||
+                            !snapshot.hasData ||
+                            snapshot.data!.isEmpty) {
+                          return Text(
+                            'No related resources found.',
+                            style: TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 12.sp,
+                            ),
+                          );
+                        }
+                        return SizedBox(
+                          height: 27.h,
+                          child: ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              final relatedBook = snapshot.data![index];
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          BookScreen(book: relatedBook),
+                                    ),
+                                  );
+                                },
+                                child: SmallBookCard(book: relatedBook),
+                              );
+                            },
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(height: 2.h),
                   ],

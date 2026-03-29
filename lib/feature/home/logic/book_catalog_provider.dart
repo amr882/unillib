@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unilib/core/model/book_model.dart';
 
 class BookCatalogProvider extends ChangeNotifier {
@@ -7,6 +8,7 @@ class BookCatalogProvider extends ChangeNotifier {
   List<Book> _trending = [];
   List<Book> _searchResults = [];
   List<Book> _allBooks = [];
+  List<Book> _recentlyViewed = [];
 
   bool _isLoading = false;
   bool _isSearching = false;
@@ -16,6 +18,7 @@ class BookCatalogProvider extends ChangeNotifier {
   List<Book> get trending => _trending;
   List<Book> get searchResults => _searchResults;
   List<Book> get allBooks => _allBooks;
+  List<Book> get recentlyViewed => _recentlyViewed;
   bool get isLoading => _isLoading;
   bool get isSearching => _isSearching;
   String? get error => _error;
@@ -79,7 +82,83 @@ class BookCatalogProvider extends ChangeNotifier {
   }
 
   Future<void> fetchHomeData() async {
-    await Future.wait([fetchFeatured(), fetchTrending()]);
+    await Future.wait([fetchFeatured(), fetchTrending(), fetchRecentlyViewed()]);
+  }
+
+  Future<void> fetchRecentlyViewed() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final recentIds = prefs.getStringList('recently_viewed') ?? [];
+      
+      if (recentIds.isEmpty) {
+        _recentlyViewed = [];
+        notifyListeners();
+        return;
+      }
+
+      final snap = await _firestore
+          .collection('books')
+          .where(FieldPath.documentId, whereIn: recentIds)
+          .get();
+
+      final fetchedBooks = snap.docs.map(Book.fromFirestore).toList();
+      
+      // Sort to match recentIds order
+      _recentlyViewed = recentIds
+          .map((id) => fetchedBooks.firstWhere(
+                (b) => b.id == id,
+                orElse: () => Book(id: '??', rawId: '??', title: '??', titleLower: '??', author: '??', authorLower: '??', description: '??', isbn: '??', year: '??', language: '??', category: '??', faculty: '??', facultySlug: '??', coverUrl: '??', sourceUrl: '??', createdAt: '??', updatedAt: '??', availableCopies: 0, totalCopies: 0, borrowCount: 0, isAvailable: false, tags: [], reservedBy: [], borrowedBy: [], location: BookLocation(building: '??', floor: '??', shelf: '??')),
+              ))
+          .where((b) => b.id != '??')
+          .toList();
+          
+    } catch (e) {
+      debugPrint('Failed to load recent: $e');
+    }
+    notifyListeners();
+  }
+
+  Future<void> addRecentlyViewed(String id) async {
+    if (id == '??') return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      List<String> recentIds = prefs.getStringList('recently_viewed') ?? [];
+      
+      if (recentIds.contains(id)) {
+        recentIds.remove(id);
+      }
+      recentIds.insert(0, id);
+      
+      if (recentIds.length > 5) {
+        recentIds = recentIds.sublist(0, 5);
+      }
+      
+      await prefs.setStringList('recently_viewed', recentIds);
+      await fetchRecentlyViewed();
+    } catch (e) {
+      debugPrint('Failed to add recent: $e');
+    }
+  }
+
+  Future<List<Book>> getRelatedBooks(Book book) async {
+    try {
+      QuerySnapshot<Map<String, dynamic>> snap = await _firestore
+          .collection('books')
+          .where('category', isEqualTo: book.category)
+          .where('is_available', isEqualTo: true)
+          .limit(6)
+          .get();
+
+      List<Book> related = snap.docs
+          .map(Book.fromFirestore)
+          .where((b) => b.id != book.id)
+          .toList();
+
+      return related;
+    } catch (e) {
+      debugPrint('Failed to fetch related: $e');
+      return [];
+    }
   }
 
   Future<void> fetchAllBooks({String? facultyFilter}) async {
