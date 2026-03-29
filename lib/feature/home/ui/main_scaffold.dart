@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/core/theme/app_text_styles.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/ai_assistant.dart';
 import 'package:unilib/feature/home/ui/nav_pages/browse_page/browse_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/profile_page/profile_screen.dart';
@@ -30,7 +30,7 @@ class _MainScaffoldState extends State<MainScaffold> {
       case 1:
         return const BrowseScreen();
       case 2:
-        return const _PlaceholderScreen(label: 'AI Assistant');
+        return const AiAssistant();
       case 3:
         return const ProfileScreen();
       default:
@@ -152,12 +152,3 @@ class _AppBottomNavBar extends StatelessWidget {
   }
 }
 
-class _PlaceholderScreen extends StatelessWidget {
-  final String label;
-  const _PlaceholderScreen({required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(child: Text(label, style: AppTextStyles.heading));
-  }
-}
