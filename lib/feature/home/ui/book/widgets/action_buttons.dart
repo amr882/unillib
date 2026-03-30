@@ -73,7 +73,7 @@ class _ActionButtonsState extends State<ActionButtons>
     final Color btnColor = isBorrowed
         ? const Color(0xFFB0BEC5)
         : AppColors.gold;
-    final bool canTap = !widget.isLoading && !isBorrowed;
+    final bool canTap = !widget.isLoading;
 
     return Column(
       children: [
@@ -119,7 +119,7 @@ class _ActionButtonsState extends State<ActionButtons>
                         ),
                         SizedBox(width: 2.w),
                         Text(
-                          isBorrowed ? 'Already Borrowed' : 'Borrow Book',
+                          isBorrowed ? 'Return Book' : 'Borrow Book',
                           style: AppTextStyles.buttonLabel.copyWith(
                             color: Colors.white,
                           ),
@@ -202,7 +202,7 @@ class _BorrowConfirmDialog extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                'Confirm Borrow',
+                alreadyBorrowed ? 'Confirm Return' : 'Confirm Borrow',
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
@@ -211,7 +211,9 @@ class _BorrowConfirmDialog extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               Text(
-                'You are about to borrow\n"$bookTitle".\nDo you want to continue?',
+                alreadyBorrowed
+                    ? 'You are about to return\n"$bookTitle".\nDo you want to continue?'
+                    : 'You are about to borrow\n"$bookTitle".\nDo you want to continue?',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
@@ -252,9 +254,9 @@ class _BorrowConfirmDialog extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 13),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Borrow',
-                        style: TextStyle(
+                      child: Text(
+                        alreadyBorrowed ? 'Return' : 'Borrow',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
                         ),

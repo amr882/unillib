@@ -1,20 +1,26 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
+import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_avatar.dart';
+import 'package:unilib/feature/home/ui/nav_pages/home_page/widgets/small_book_card.dart';
 
-final Set<String> _animatedMessages = {};
 
 class AiMessage extends StatefulWidget {
   final String msg;
   final String timeText;
-  final bool animate;
+  final bool shouldAnimate;
 
   const AiMessage({
     super.key, 
     required this.msg, 
     this.timeText = "9:32 AM", 
-    this.animate = false,
+    this.shouldAnimate = false,
   });
 
   @override
@@ -23,29 +29,81 @@ class AiMessage extends StatefulWidget {
 
 class _AiMessageState extends State<AiMessage> {
   String _displayedText = "";
-  late int _currentIndex;
+  String _cleanMsg = "";
+  List<Book> _suggestedBooks = [];
+  bool _isFetchingBooks = false;
+  Timer? _typingTimer;
 
   @override
   void initState() {
     super.initState();
-    final messageKey = "${widget.timeText}_${widget.msg.hashCode}";
-    if (widget.animate && !_animatedMessages.contains(messageKey)) {
-      _animatedMessages.add(messageKey);
-      _currentIndex = 0;
-      _typeNextCharacter();
+    _prepareMessage();
+  }
+
+  @override
+  void dispose() {
+    _typingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _prepareMessage() {
+    final bookIdRegex = RegExp(r'\[BOOK:\s*(.+?)\]');
+    final matches = bookIdRegex.allMatches(widget.msg);
+    final bookIds = matches.map((m) => m.group(1)!.trim()).toList();
+    _cleanMsg = widget.msg.replaceAll(bookIdRegex, '').trim();
+
+    if (bookIds.isNotEmpty) {
+      _fetchBooks(bookIds);
+    }
+
+    if (widget.shouldAnimate) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) _startTypingAnimation();
+      });
     } else {
-      _displayedText = widget.msg;
+      _displayedText = _cleanMsg;
     }
   }
 
-  void _typeNextCharacter() {
+  void _startTypingAnimation() {
+    _typingTimer?.cancel();
+    _displayedText = "";
+    int index = 0;
+    
+    _typingTimer = Timer.periodic(const Duration(milliseconds: 15), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (index < _cleanMsg.length) {
+        setState(() {
+          _displayedText += _cleanMsg[index];
+        });
+        index++;
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  Future<void> _fetchBooks(List<String> ids) async {
     if (!mounted) return;
-    if (_currentIndex < widget.msg.length) {
+    setState(() => _isFetchingBooks = true);
+    
+    List<Book> books = [];
+    final provider = context.read<BookCatalogProvider>();
+    
+    for (final id in ids) {
+      final book = await provider.fetchBookById(id);
+      if (book != null) books.add(book);
+    }
+
+    if (mounted) {
       setState(() {
-        _displayedText += widget.msg[_currentIndex];
-        _currentIndex++;
+        _suggestedBooks = books;
+        _isFetchingBooks = false;
       });
-      Future.delayed(const Duration(milliseconds: 15), _typeNextCharacter);
     }
   }
 
@@ -53,15 +111,9 @@ class _AiMessageState extends State<AiMessage> {
   void didUpdateWidget(AiMessage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.msg != oldWidget.msg) {
-      final messageKey = "${widget.timeText}_${widget.msg.hashCode}";
-      if (widget.animate && !_animatedMessages.contains(messageKey)) {
-        _animatedMessages.add(messageKey);
-        _currentIndex = 0;
-        _displayedText = "";
-        _typeNextCharacter();
-      } else {
-        _displayedText = widget.msg;
-      }
+      _typingTimer?.cancel();
+      _suggestedBooks = [];
+      _prepareMessage();
     }
   }
 
@@ -100,6 +152,8 @@ class _AiMessageState extends State<AiMessage> {
                   ),
                   child: Text(
                     _displayedText,
+                    textAlign: TextAlign.start,
+                    textDirection: _displayedText.trim().startsWith(RegExp(r'[\u0600-\u06FF]')) ? TextDirection.rtl : TextDirection.ltr,
                     style: TextStyle(
                       color: AppColors.textLight,
                       fontSize: 16.sp,
@@ -113,7 +167,7 @@ class _AiMessageState extends State<AiMessage> {
           ),
           SizedBox(height: 0.4.h),
           Padding(
-            padding: EdgeInsets.only(left: 10.w),
+            padding: EdgeInsets.only(left: 10.w, top: 0.5.h),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -127,6 +181,58 @@ class _AiMessageState extends State<AiMessage> {
               ],
             ),
           ),
+
+          if (_isFetchingBooks)
+            Padding(
+              padding: EdgeInsets.only(left: 10.w, top: 1.5.h),
+              child: SizedBox(
+                height: 28.h,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 2,
+                  itemBuilder: (context, index) => Container(
+                    width: 35.w,
+                    margin: EdgeInsets.only(right: 4.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ).animate(onPlay: (controller) => controller.repeat())
+                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.1)),
+                ),
+              ),
+            )
+          else if (_suggestedBooks.isNotEmpty)
+            Container(
+              height: 28.h,
+              margin: EdgeInsets.only(top: 1.5.h, left: 10.w),
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: _suggestedBooks.length,
+                itemBuilder: (context, index) {
+                  final book = _suggestedBooks[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookScreen(book: book),
+                        ),
+                      );
+                    },
+                    child: SmallBookCard(
+                      book: book,
+                      titleColor: Colors.white,
+                      authorColor: Colors.white,
+                      titleFontSize: 14.sp,
+                      authorFontSize: 13.sp,
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

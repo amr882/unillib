@@ -6,7 +6,13 @@ import 'home_search_bar.dart';
 
 class HomeTopCard extends StatelessWidget {
   final String userName;
-  const HomeTopCard({super.key, required this.userName});
+  final bool isLoading;
+
+  const HomeTopCard({
+    super.key,
+    required this.userName,
+    this.isLoading = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +31,10 @@ class HomeTopCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HomeWelcomeHeader(userName: userName),
+              HomeWelcomeHeader(
+                userName: userName,
+                isLoading: isLoading,
+              ),
               SizedBox(height: 2.h),
               const HomeSearchBar(),
             ],

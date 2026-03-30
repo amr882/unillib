@@ -41,6 +41,8 @@ class UserMessage extends StatelessWidget {
                   ),
                   child: Text(
                     msg,
+                    textAlign: TextAlign.start,
+                    textDirection: msg.trim().startsWith(RegExp(r'[\u0600-\u06FF]')) ? TextDirection.rtl : TextDirection.ltr,
                     style: TextStyle(
                       color: AppColors.navy900,
                       fontSize: 16.sp,

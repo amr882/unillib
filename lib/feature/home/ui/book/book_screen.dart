@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
@@ -76,7 +77,7 @@ class _BookScreenState extends State<BookScreen> {
         backgroundColor: success ? AppColors.gold : Colors.redAccent,
         content: Text(
           success
-              ? (_alreadyBorrowed ? 'Book returned!' : 'Book borrowed!')
+              ? (_alreadyBorrowed ? 'Book borrowed!' : 'Book returned!')
               : context.read<UserBooksProvider>().error ??
                     'Something went wrong.',
           style: const TextStyle(color: Colors.white),
@@ -92,7 +93,12 @@ class _BookScreenState extends State<BookScreen> {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          SliverToBoxAdapter(child: BookHeader(book: widget.book)),
+          SliverToBoxAdapter(
+            child: BookHeader(book: widget.book)
+                .animate()
+                .fadeIn(duration: 600.ms)
+                .slideY(begin: -0.1, end: 0),
+          ),
           SliverToBoxAdapter(
             child: Container(
               decoration: const BoxDecoration(
@@ -107,7 +113,10 @@ class _BookScreenState extends State<BookScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionTitle(title: 'About this Resource'),
+                    _SectionTitle(title: 'About this Resource')
+                        .animate()
+                        .fadeIn(delay: 200.ms)
+                        .slideY(begin: 0.1, end: 0),
                     SizedBox(height: 1.h),
                     Text(
                       widget.book.description,
@@ -135,10 +144,12 @@ class _BookScreenState extends State<BookScreen> {
                       isLoading: _isLoading,
                       alreadyBorrowed: _alreadyBorrowed,
                       onBorrowTap: _handleBorrow,
-                    ),
+                    ).animate().fadeIn(delay: 500.ms).scale(begin: const Offset(0.95, 0.95)),
                     SizedBox(height: 4.h),
 
-                    _SectionTitle(title: 'You might also like'),
+                    _SectionTitle(title: 'You might also like')
+                        .animate()
+                        .fadeIn(delay: 600.ms),
                     SizedBox(height: 1.5.h),
                     FutureBuilder<List<Book>>(
                       future: _relatedFuture,
@@ -181,7 +192,7 @@ class _BookScreenState extends State<BookScreen> {
                                   );
                                 },
                                 child: SmallBookCard(book: relatedBook),
-                              );
+                              ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
                             },
                           ),
                         );

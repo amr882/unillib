@@ -38,6 +38,18 @@ class BookCatalogProvider extends ChangeNotifier {
   }
 
   // ── fetchers ──
+  
+  Future<Book?> fetchBookById(String id) async {
+    try {
+      final doc = await _firestore.collection('books').doc(id).get();
+      if (doc.exists) {
+        return Book.fromFirestore(doc);
+      }
+    } catch (e) {
+      debugPrint('Error fetching book $id: $e');
+    }
+    return null;
+  }
 
   Future<void> fetchFeatured() async {
     _setLoading(true);

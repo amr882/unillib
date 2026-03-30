@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
@@ -40,8 +41,9 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           HomeTopCard(
-            userName: '${user?.firstName} ${user?.lastName}'.toUpperCase(),
-          ),
+            userName: user != null ? '${user.firstName} ${user.lastName}'.toUpperCase() : '',
+            isLoading: context.watch<UserProvider>().isLoading,
+          ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0, curve: Curves.easeOutQuad),
 
           Expanded(
             child: SingleChildScrollView(
@@ -72,7 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               );
                             },
                             child: SmallBookCard(book: book),
-                          );
+                          ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideX(begin: 0.2, end: 0);
                         },
                       ),
                     ),
@@ -137,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           rank: index + 1,
                           book: books.trending[index],
                         ),
-                      ),
+                      ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
                     ),
 
                   SizedBox(height: 3.h),

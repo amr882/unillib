@@ -19,6 +19,17 @@ class AiActiveChatView extends StatefulWidget {
 
 class _AiActiveChatViewState extends State<AiActiveChatView> {
   final TextEditingController _controller = TextEditingController();
+  DateTime? _lastAnimatedTimestamp;
+  String? _lastSessionId;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.aiProvider.messages.isNotEmpty) {
+      _lastAnimatedTimestamp = widget.aiProvider.messages.last.timestamp;
+    }
+    _lastSessionId = widget.aiProvider.activeChatId;
+  }
 
   @override
   void dispose() {
@@ -38,6 +49,12 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
 
   @override
   Widget build(BuildContext context) {
+    // Reset animation tracking if we switched chats
+    if (_lastSessionId != widget.aiProvider.activeChatId) {
+      _lastSessionId = widget.aiProvider.activeChatId;
+      _lastAnimatedTimestamp = null;
+    }
+
     return Column(
       children: [
         AiChatHeader(
@@ -60,7 +77,29 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
                 ),
               if (widget.aiProvider.isLoading) const TypingIndicator(),
               if (widget.aiProvider.messages.isNotEmpty) ...[
-                ...widget.aiProvider.messages.reversed.map((msg) {
+                ...widget.aiProvider.messages.reversed.toList().asMap().entries.map((
+                  entry,
+                ) {
+                  final index = entry.key;
+                  final msg = entry.value;
+
+                  bool shouldAnimate = false;
+                  // Only animate the very last AI message if it hasn't been animated yet
+                  if (index == 0 && !msg.isUser) {
+                    if (_lastAnimatedTimestamp == null ||
+                        msg.timestamp.isAfter(_lastAnimatedTimestamp!)) {
+                      shouldAnimate = true;
+                      // We'll update the timestamp after this frame to prevent re-animation
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _lastAnimatedTimestamp = msg.timestamp;
+                          });
+                        }
+                      });
+                    }
+                  }
+
                   return msg.isUser
                       ? UserMessage(
                           msg: msg.text,
@@ -69,21 +108,15 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
                       : AiMessage(
                           msg: msg.text,
                           timeText: _formatTime(msg.timestamp),
-                          animate:
-                              msg.timestamp.compareTo(
-                                widget.aiProvider.sessionStartTime,
-                              ) >=
-                              0,
+                          shouldAnimate: shouldAnimate,
                         );
                 }),
               ] else ...[
-
                 SizedBox(height: 1.5.h),
                 AiMessage(
                   msg:
-                      "Hello! I'm UniLib AI, your personal Books AI assistant. How can I help you today?",
+                      "Hello! I'm UniLib AI, your personal Books AI assistant. How can I help you today?\n\nأهلاً بك! أنا مساعد UniLib الذكي، كيف يمكنني مساعدتك اليوم؟",
                   timeText: _formatTime(DateTime.now()),
-                  animate: true,
                 ),
                 SizedBox(height: 2.h),
               ],
@@ -93,6 +126,10 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
         AiChatInputField(
           controller: _controller,
           onSend: _sendMessage,
+          onStop: () {
+            widget.aiProvider.stopGenerating();
+          },
+          isLoading: widget.aiProvider.isLoading,
         ),
       ],
     );

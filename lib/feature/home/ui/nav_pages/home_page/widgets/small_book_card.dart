@@ -6,8 +6,19 @@ import 'package:unilib/core/theme/app_colors.dart';
 
 class SmallBookCard extends StatelessWidget {
   final Book book;
+  final Color? titleColor;
+  final Color? authorColor;
+  final double? titleFontSize;
+  final double? authorFontSize;
 
-  const SmallBookCard({super.key, required this.book});
+  const SmallBookCard({
+    super.key,
+    required this.book,
+    this.titleColor,
+    this.authorColor,
+    this.titleFontSize,
+    this.authorFontSize,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +65,9 @@ class SmallBookCard extends StatelessWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: titleFontSize ?? 12.sp,
               fontWeight: FontWeight.w700,
-              color: AppColors.navy,
+              color: titleColor ?? AppColors.navy,
               height: 1.2,
             ),
           ),
@@ -67,7 +78,10 @@ class SmallBookCard extends StatelessWidget {
             book.author,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(fontSize: 10.sp, color: AppColors.textMuted),
+            style: TextStyle(
+              fontSize: authorFontSize ?? 10.sp,
+              color: authorColor ?? AppColors.textMuted,
+            ),
           ),
         ],
       ),
