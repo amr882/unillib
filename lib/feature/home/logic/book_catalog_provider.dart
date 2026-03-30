@@ -232,7 +232,13 @@ class BookCatalogProvider extends ChangeNotifier {
     String userId, {
     required bool borrowed,
   }) {
-    for (final list in [_trending, _featured, _allBooks, _searchResults]) {
+    for (final list in [
+      _trending,
+      _featured,
+      _allBooks,
+      _searchResults,
+      _recentlyViewed
+    ]) {
       final idx = list.indexWhere((b) => b.id == bookId);
       if (idx == -1) continue;
       final b = list[idx];
@@ -242,13 +248,25 @@ class BookCatalogProvider extends ChangeNotifier {
       } else {
         updatedBorrowedBy.remove(userId);
       }
-      list[idx] = b.copyWith(
+
+      final int newAvailableCount = borrowed
+          ? b.availableCopies - 1
+          : b.availableCopies + 1;
+
+      final updatedBook = b.copyWith(
         borrowedBy: updatedBorrowedBy,
-        availableCopies: borrowed
-            ? b.availableCopies - 1
-            : b.availableCopies + 1,
+        availableCopies: newAvailableCount,
+        isAvailable: newAvailableCount > 0,
         borrowCount: borrowed ? b.borrowCount + 1 : b.borrowCount,
       );
+
+      // Special handling for trending/featured if they become unavailable
+      // According to Firestore queries, only is_available=true books are shown.
+      if (borrowed && newAvailableCount == 0 && (list == _trending || list == _featured)) {
+        list.removeAt(idx);
+      } else {
+        list[idx] = updatedBook;
+      }
     }
     notifyListeners();
   }

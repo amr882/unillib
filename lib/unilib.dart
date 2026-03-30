@@ -1,4 +1,3 @@
-import 'package:device_preview/device_preview.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -40,15 +39,15 @@ class _UniLibState extends State<UniLib> {
             ChangeNotifierProvider(create: (_) => UserProvider()),
             ChangeNotifierProvider(create: (_) => BookCatalogProvider()),
             ChangeNotifierProxyProvider<BookCatalogProvider, UserBooksProvider>(
-              create: (ctx) => UserBooksProvider(ctx.read<BookCatalogProvider>()),
+              create: (ctx) =>
+                  UserBooksProvider(ctx.read<BookCatalogProvider>()),
               update: (_, catalog, prev) => prev ?? UserBooksProvider(catalog),
             ),
             ChangeNotifierProvider(create: (_) => GenerativeAiProvider()),
           ],
           child: MaterialApp(
             useInheritedMediaQuery: true,
-            locale: DevicePreview.locale(context),
-            builder: DevicePreview.appBuilder,
+
             theme: ThemeData(
               scaffoldBackgroundColor: Colors.white,
               fontFamily: GoogleFonts.dmSans().fontFamily,

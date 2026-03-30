@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 
@@ -15,10 +16,21 @@ class UserBooksProvider extends ChangeNotifier {
     releaseExpiredReservations();
   }
 
+  Future<bool> _checkConnectivity() async {
+    final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+    if (results.contains(ConnectivityResult.none)) {
+      _error = 'No internet connection. Please check your network and try again.';
+      notifyListeners();
+      return false;
+    }
+    return true;
+  }
+
   Future<bool> borrowBook({
     required String bookId,
     required String userId,
   }) async {
+    if (!await _checkConnectivity()) return false;
     try {
       final docRef = _firestore.collection('books').doc(bookId);
 
@@ -128,6 +140,7 @@ class UserBooksProvider extends ChangeNotifier {
     required String bookId,
     required String userId,
   }) async {
+    if (!await _checkConnectivity()) return false;
     try {
       await _firestore.collection('books').doc(bookId).update({
         'borrowed_by': FieldValue.arrayRemove([userId]),

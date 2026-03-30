@@ -15,6 +15,7 @@ import 'package:unilib/feature/home/ui/book/widgets/details.dart';
 import 'package:unilib/feature/home/ui/book/widgets/header.dart';
 import 'package:unilib/feature/home/ui/book/widgets/location.dart';
 import 'package:unilib/feature/home/ui/book/widgets/tags.dart';
+import 'package:unilib/feature/home/ui/book/widgets/success_ticket_dialog.dart';
 
 class BookScreen extends StatefulWidget {
   final Book book;
@@ -61,13 +62,25 @@ class _BookScreenState extends State<BookScreen> {
             userId: userId,
           );
 
-    if (!mounted) return;
-
     if (success) {
+      final bool justBorrowed = !_alreadyBorrowed;
       setState(() {
         _alreadyBorrowed = !_alreadyBorrowed;
         _isLoading = false;
       });
+
+      if (justBorrowed) {
+        // Fetch latest book from provider for the dialog
+        final latestBook = context.read<BookCatalogProvider>().recentlyViewed.firstWhere(
+          (b) => b.id == widget.book.id,
+          orElse: () => widget.book,
+        );
+        showDialog(
+          context: context,
+          barrierColor: Colors.black87,
+          builder: (_) => SuccessTicketDialog(book: latestBook),
+        );
+      }
     } else {
       setState(() => _isLoading = false);
     }
@@ -88,13 +101,36 @@ class _BookScreenState extends State<BookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = context.watch<UserProvider>().user?.id ?? '';
+    final catalog = context.watch<BookCatalogProvider>();
+
+    // Find the most up-to-date version of the book in the catalog
+    Book currentBook = widget.book;
+    final allLists = [
+      catalog.trending,
+      catalog.featured,
+      catalog.allBooks,
+      catalog.searchResults,
+      catalog.recentlyViewed
+    ];
+
+    for (final list in allLists) {
+      final found = list.where((b) => b.id == widget.book.id);
+      if (found.isNotEmpty) {
+        currentBook = found.first;
+        break;
+      }
+    }
+
+    _alreadyBorrowed = currentBook.borrowedBy.contains(userId);
+
     return Scaffold(
       backgroundColor: AppColors.navy,
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: BookHeader(book: widget.book)
+            child: BookHeader(book: currentBook)
                 .animate()
                 .fadeIn(duration: 600.ms)
                 .slideY(begin: -0.1, end: 0),
@@ -119,7 +155,7 @@ class _BookScreenState extends State<BookScreen> {
                         .slideY(begin: 0.1, end: 0),
                     SizedBox(height: 1.h),
                     Text(
-                      widget.book.description,
+                      currentBook.description,
                       style: TextStyle(
                         fontSize: 13.sp,
                         color: AppColors.textMuted,
@@ -127,22 +163,23 @@ class _BookScreenState extends State<BookScreen> {
                       ),
                     ),
                     SizedBox(height: 3.h),
-                    BookDetailsRow(book: widget.book),
+                    BookDetailsRow(book: currentBook),
                     SizedBox(height: 3.h),
-                    if (widget.book.tags.isNotEmpty) ...[
+                    if (currentBook.tags.isNotEmpty) ...[
                       _SectionTitle(title: 'Tags'),
                       SizedBox(height: 1.h),
-                      TagsRow(tags: widget.book.tags),
+                      TagsRow(tags: currentBook.tags),
                       SizedBox(height: 3.h),
                     ],
                     _SectionTitle(title: 'Location'),
                     SizedBox(height: 1.h),
-                    LocationCard(book: widget.book),
+                    LocationCard(book: currentBook),
                     SizedBox(height: 4.h),
                     ActionButtons(
-                      book: widget.book,
+                      book: currentBook,
                       isLoading: _isLoading,
                       alreadyBorrowed: _alreadyBorrowed,
+                      studentId: userId,
                       onBorrowTap: _handleBorrow,
                     ).animate().fadeIn(delay: 500.ms).scale(begin: const Offset(0.95, 0.95)),
                     SizedBox(height: 4.h),
