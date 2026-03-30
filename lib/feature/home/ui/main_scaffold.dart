@@ -19,7 +19,7 @@ class _MainScaffoldState extends State<MainScaffold> {
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Icons.home_rounded, label: 'Home'),
     _NavItem(icon: Icons.menu_book_rounded, label: 'Browse'),
-    _NavItem(icon: Icons.smart_toy_outlined, label: 'AI assistant'),
+    _NavItem(icon: Icons.auto_awesome_rounded, label: 'UniLib AI'),
     _NavItem(icon: Icons.person_rounded, label: 'Profile'),
   ];
 
@@ -150,4 +150,3 @@ class _AppBottomNavBar extends StatelessWidget {
     );
   }
 }
-

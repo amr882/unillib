@@ -69,15 +69,6 @@ class AiChatHeader extends StatelessWidget {
               ],
             ),
           ),
-
-          // Menu icon
-          Text(
-            '⋮',
-            style: TextStyle(
-              color: AppColors.gold500.withOpacity(0.8),
-              fontSize: 18.sp,
-            ),
-          ),
         ],
       ),
     );

@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
-import '../../model/chat_session_model.dart';
+import 'package:unilib/core/model/chat_session_model.dart';
 import '../general/ai_core_service.dart';
 import 'chat_persistence_service.dart';
 
