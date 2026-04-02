@@ -6,6 +6,8 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 
+import 'package:unilib/core/service/notification_service.dart';
+
 class SuccessTicketDialog extends StatefulWidget {
   final Book book;
   final String? customQrData;
@@ -30,6 +32,13 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
     super.initState();
     _qrData = widget.customQrData ??
         'BORROW-${widget.book.id}-${DateTime.now().millisecondsSinceEpoch}';
+    
+    // Send success notification
+    NotificationService().showNotification(
+      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      title: 'Borrowing Successful!',
+      body: 'You have successfully borrowed "${widget.book.title}". Your pass is ready!',
+    );
   }
 
   @override

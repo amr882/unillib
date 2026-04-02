@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unilib/core/model/book_model.dart';
+import 'package:unilib/core/service/notification_service.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 
 class UserBooksProvider extends ChangeNotifier {
@@ -34,8 +35,11 @@ class UserBooksProvider extends ChangeNotifier {
     try {
       final docRef = _firestore.collection('books').doc(bookId);
 
+      String bookTitle = 'Book';
       await _firestore.runTransaction((transaction) async {
         final snap = await transaction.get(docRef);
+        bookTitle = snap.data()?['title'] ?? 'Book';
+
         final available = (snap.data()?['available_copies'] ?? 0) as int;
         final borrowedBy = List<dynamic>.from(
           snap.data()?['borrowed_by'] ?? [],
@@ -79,6 +83,15 @@ class UserBooksProvider extends ChangeNotifier {
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: true);
+
+      // Schedule notification for 2 days from now (1 day before expiry)
+      await NotificationService().scheduleNotification(
+        id: bookId.hashCode,
+        title: 'Return Book Reminder',
+        body: 'Your reservation for "$bookTitle" expires in 24 hours. Please return it soon!',
+        scheduledDate: DateTime.now().add(const Duration(days: 2)),
+      );
+
       return true;
     } on Exception catch (e) {
       final msg = e.toString();
@@ -149,6 +162,10 @@ class UserBooksProvider extends ChangeNotifier {
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: false);
+
+      // Cancel the scheduled notification
+      await NotificationService().cancelNotification(bookId.hashCode);
+
       return true;
     } catch (e) {
       _error = 'Failed to return: $e';

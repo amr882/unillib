@@ -36,6 +36,7 @@ class _ActionButtonsState extends State<ActionButtons> {
       isScrollControlled: true,
       builder: (_) => BorrowActionSheet(
         book: widget.book,
+        isLoading: widget.isLoading,
         onConfirm: widget.onBorrowTap,
       ),
     );

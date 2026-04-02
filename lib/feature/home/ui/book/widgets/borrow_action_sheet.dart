@@ -8,11 +8,13 @@ import 'slide_to_act.dart';
 class BorrowActionSheet extends StatelessWidget {
   final Book book;
   final VoidCallback onConfirm;
+  final bool isLoading;
 
   const BorrowActionSheet({
     super.key,
     required this.book,
     required this.onConfirm,
+    this.isLoading = false,
   });
 
   @override
@@ -111,10 +113,8 @@ class BorrowActionSheet extends StatelessWidget {
             // Slide to Borrow
             SlideToAct(
               text: 'Slide to Borrow',
-              onConfirm: () {
-                Navigator.pop(context);
-                onConfirm();
-              },
+              isLoading: isLoading,
+              onConfirm: onConfirm,
             ),
 
             SizedBox(height: 2.h),

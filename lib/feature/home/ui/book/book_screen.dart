@@ -50,9 +50,10 @@ class _BookScreenState extends State<BookScreen> {
     final userId = context.read<UserProvider>().user?.id ?? '';
     if (userId.isEmpty) return;
 
+    final bool wasBorrowed = _alreadyBorrowed;
     setState(() => _isLoading = true);
 
-    final success = _alreadyBorrowed
+    final success = wasBorrowed
         ? await context.read<UserBooksProvider>().returnBook(
             bookId: widget.book.id,
             userId: userId,
@@ -63,13 +64,10 @@ class _BookScreenState extends State<BookScreen> {
           );
 
     if (success) {
-      final bool justBorrowed = !_alreadyBorrowed;
-      setState(() {
-        _alreadyBorrowed = !_alreadyBorrowed;
-        _isLoading = false;
-      });
+      if (!wasBorrowed) {
+        // If we just borrowed, first pop the action sheet
+        Navigator.pop(context);
 
-      if (justBorrowed) {
         // Fetch latest book from provider for the dialog
         final latestBook = context.read<BookCatalogProvider>().recentlyViewed.firstWhere(
           (b) => b.id == widget.book.id,
@@ -81,6 +79,11 @@ class _BookScreenState extends State<BookScreen> {
           builder: (_) => SuccessTicketDialog(book: latestBook),
         );
       }
+
+      setState(() {
+        _alreadyBorrowed = !wasBorrowed;
+        _isLoading = false;
+      });
     } else {
       setState(() => _isLoading = false);
     }
@@ -90,7 +93,7 @@ class _BookScreenState extends State<BookScreen> {
         backgroundColor: success ? AppColors.gold : Colors.redAccent,
         content: Text(
           success
-              ? (_alreadyBorrowed ? 'Book borrowed!' : 'Book returned!')
+              ? (!wasBorrowed ? 'Book borrowed!' : 'Book returned!')
               : context.read<UserBooksProvider>().error ??
                     'Something went wrong.',
           style: const TextStyle(color: Colors.white),

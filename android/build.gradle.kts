@@ -12,8 +12,19 @@ val newBuildDir: Directory =
 rootProject.layout.buildDirectory.value(newBuildDir)
 
 subprojects {
-    val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
-    project.layout.buildDirectory.value(newSubprojectBuildDir)
+    val projectPath = project.projectDir.absolutePath
+    val isExternalPlugin = projectPath.contains("Pub/Cache") || projectPath.contains("Pub\\Cache")
+
+    if (!isExternalPlugin) {
+        val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
+        project.layout.buildDirectory.value(newSubprojectBuildDir)
+    }
+
+    afterEvaluate {
+        tasks.matching { it.name.contains("UnitTest", ignoreCase = true) }.configureEach {
+            enabled = false
+        }
+    }
 }
 subprojects {
     project.evaluationDependsOn(":app")

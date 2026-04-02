@@ -47,3 +47,4 @@ android/app/google-services.json
 lib/firebase_options.dart
 lib/keys.dart
 pubspec.lock
+.antigravityignore

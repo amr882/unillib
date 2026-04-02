@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:unilib/core/model/book_model.dart';
+import 'package:unilib/core/service/notification_service.dart';
 
 class BookCatalogProvider extends ChangeNotifier {
   List<Book> _featured = [];
@@ -13,6 +15,10 @@ class BookCatalogProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isSearching = false;
   String? _error;
+
+  Set<String> _interestedCategories = {};
+  StreamSubscription? _newBooksSubscription;
+  String? _lastKnownBookTimestamp;
 
   List<Book> get featured => _featured;
   List<Book> get trending => _trending;
@@ -31,6 +37,79 @@ class BookCatalogProvider extends ChangeNotifier {
     if (b.coverUrl.isNotEmpty && b.coverUrl != '??') score += 2;
     if (b.description.isNotEmpty && b.description != '??') score += 1;
     return score;
+  }
+
+  void _updateInterests() {
+    final newInterests = _recentlyViewed.map((b) => b.category).where((cat) => cat != '??').toSet();
+    if (_searchResults.isNotEmpty) {
+      newInterests.addAll(_searchResults.take(5).map((b) => b.category).where((cat) => cat != '??'));
+    }
+    
+    if (newInterests.isNotEmpty && !setEquals(_interestedCategories, newInterests)) {
+      _interestedCategories = newInterests;
+      debugPrint('Updated interests: $_interestedCategories');
+      // Restart listener if it wasn't running
+      if (_newBooksSubscription == null) {
+        startNewBooksListener();
+      }
+    }
+  }
+
+  bool setEquals(Set a, Set b) {
+    if (a.length != b.length) return false;
+    return a.containsAll(b);
+  }
+
+  void startNewBooksListener() {
+    _newBooksSubscription?.cancel();
+
+    // Initial fetch to get the current latest timestamp
+    _firestore
+        .collection('books')
+        .orderBy('created_at', descending: true)
+        .limit(1)
+        .get()
+        .then((snap) {
+      if (snap.docs.isNotEmpty) {
+        _lastKnownBookTimestamp = snap.docs.first.data()['created_at'];
+      }
+
+      _newBooksSubscription = _firestore
+          .collection('books')
+          .snapshots()
+          .listen((snap) {
+        for (var change in snap.docChanges) {
+          if (change.type == DocumentChangeType.added) {
+            final data = change.doc.data();
+            if (data == null) continue;
+            
+            final createdAt = data['created_at'] as String? ?? '';
+            
+            // Only notify if it's newer than the last known book
+            if (_lastKnownBookTimestamp == null || createdAt.compareTo(_lastKnownBookTimestamp!) > 0) {
+              final category = data['category'] as String? ?? '??';
+              if (_interestedCategories.contains(category)) {
+                NotificationService().showNotification(
+                  id: change.doc.id.hashCode,
+                  title: 'New Book for You!',
+                  body: 'A new book in "$category" is now available: ${data['title']}',
+                );
+              }
+              // Update last known timestamp to avoid duplicate alerts if multiple changes come in
+              if (_lastKnownBookTimestamp == null || createdAt.compareTo(_lastKnownBookTimestamp!) > 0) {
+                _lastKnownBookTimestamp = createdAt;
+              }
+            }
+          }
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _newBooksSubscription?.cancel();
+    super.dispose();
   }
 
   void _sortByCompleteness(List<Book> list) {
@@ -59,10 +138,14 @@ class BookCatalogProvider extends ChangeNotifier {
           .collection('books')
           .where('is_available', isEqualTo: true)
           .orderBy('created_at', descending: true)
-          .limit(5)
+          .limit(20)
           .get();
 
-      _featured = snap.docs.map(Book.fromFirestore).toList();
+      _featured = snap.docs
+          .map(Book.fromFirestore)
+          .where((b) => b.hasCover)
+          .take(5)
+          .toList();
       _sortByCompleteness(_featured);
       _error = null;
     } catch (e) {
@@ -76,15 +159,22 @@ class BookCatalogProvider extends ChangeNotifier {
     _setLoading(true);
 
     try {
+      // Fetch a larger pool to ensure we find enough books with photos
       final snap = await _firestore
           .collection('books')
           .where('is_available', isEqualTo: true)
-          .orderBy('borrow_count', descending: true)
-          .limit(10)
+          .limit(100)
           .get();
 
-      _trending = snap.docs.map(Book.fromFirestore).toList();
-      _sortByCompleteness(_trending);
+      final booksWithCovers = snap.docs
+          .map(Book.fromFirestore)
+          .where((b) => b.hasCover)
+          .toList();
+      
+      // Shuffle to provide random books as requested
+      booksWithCovers.shuffle();
+
+      _trending = booksWithCovers.take(10).toList();
       _error = null;
     } catch (e) {
       _error = 'Failed to load trending: $e';
@@ -127,6 +217,7 @@ class BookCatalogProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint('Failed to load recent: $e');
     }
+    _updateInterests();
     notifyListeners();
   }
 
@@ -218,6 +309,7 @@ class BookCatalogProvider extends ChangeNotifier {
       _error = 'Search failed: $e';
     } finally {
       _isSearching = false;
+      _updateInterests();
       notifyListeners();
     }
   }
