@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/model/book_model.dart';
+import 'package:unilib/core/service/notification_service.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
@@ -65,14 +66,20 @@ class _BookScreenState extends State<BookScreen> {
 
     if (success) {
       if (!wasBorrowed) {
-        // If we just borrowed, first pop the action sheet
-        Navigator.pop(context);
-
-        // Fetch latest book from provider for the dialog
-        final latestBook = context.read<BookCatalogProvider>().recentlyViewed.firstWhere(
-          (b) => b.id == widget.book.id,
-          orElse: () => widget.book,
+        NotificationService().showNotification(
+          id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+          title: 'Borrowing Successful!',
+          body:
+              'You have successfully borrowed "${widget.book.title}". Your pass is ready!',
         );
+        Navigator.pop(context);
+        final latestBook = context
+            .read<BookCatalogProvider>()
+            .recentlyViewed
+            .firstWhere(
+              (b) => b.id == widget.book.id,
+              orElse: () => widget.book,
+            );
         showDialog(
           context: context,
           barrierColor: Colors.black87,
@@ -114,7 +121,7 @@ class _BookScreenState extends State<BookScreen> {
       catalog.featured,
       catalog.allBooks,
       catalog.searchResults,
-      catalog.recentlyViewed
+      catalog.recentlyViewed,
     ];
 
     for (final list in allLists) {
@@ -133,10 +140,9 @@ class _BookScreenState extends State<BookScreen> {
         physics: const BouncingScrollPhysics(),
         slivers: [
           SliverToBoxAdapter(
-            child: BookHeader(book: currentBook)
-                .animate()
-                .fadeIn(duration: 600.ms)
-                .slideY(begin: -0.1, end: 0),
+            child: BookHeader(
+              book: currentBook,
+            ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.1, end: 0),
           ),
           SliverToBoxAdapter(
             child: Container(
@@ -179,17 +185,20 @@ class _BookScreenState extends State<BookScreen> {
                     LocationCard(book: currentBook),
                     SizedBox(height: 4.h),
                     ActionButtons(
-                      book: currentBook,
-                      isLoading: _isLoading,
-                      alreadyBorrowed: _alreadyBorrowed,
-                      studentId: userId,
-                      onBorrowTap: _handleBorrow,
-                    ).animate().fadeIn(delay: 500.ms).scale(begin: const Offset(0.95, 0.95)),
+                          book: currentBook,
+                          isLoading: _isLoading,
+                          alreadyBorrowed: _alreadyBorrowed,
+                          studentId: userId,
+                          onBorrowTap: _handleBorrow,
+                        )
+                        .animate()
+                        .fadeIn(delay: 500.ms)
+                        .scale(begin: const Offset(0.95, 0.95)),
                     SizedBox(height: 4.h),
 
-                    _SectionTitle(title: 'You might also like')
-                        .animate()
-                        .fadeIn(delay: 600.ms),
+                    _SectionTitle(
+                      title: 'You might also like',
+                    ).animate().fadeIn(delay: 600.ms),
                     SizedBox(height: 1.5.h),
                     FutureBuilder<List<Book>>(
                       future: _relatedFuture,
@@ -222,17 +231,20 @@ class _BookScreenState extends State<BookScreen> {
                             itemBuilder: (context, index) {
                               final relatedBook = snapshot.data![index];
                               return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          BookScreen(book: relatedBook),
-                                    ),
-                                  );
-                                },
-                                child: SmallBookCard(book: relatedBook),
-                              ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.1, end: 0);
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              BookScreen(book: relatedBook),
+                                        ),
+                                      );
+                                    },
+                                    child: SmallBookCard(book: relatedBook),
+                                  )
+                                  .animate()
+                                  .fadeIn(delay: (index * 100).ms)
+                                  .slideX(begin: 0.1, end: 0);
                             },
                           ),
                         );

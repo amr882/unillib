@@ -30,8 +30,7 @@ class BookDetailsRow extends StatelessWidget {
             value: book.category,
           ),
           Divider(color: AppColors.navy.withOpacity(0.08), height: 2.h),
-          _DetailItem(icon: Icons.tag_rounded, label: 'ISBN', value: book.isbn),
-          Divider(color: AppColors.navy.withOpacity(0.08), height: 2.h),
+
           _DetailItem(
             icon: book.isAvailable
                 ? Icons.check_circle_rounded

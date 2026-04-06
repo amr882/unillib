@@ -86,10 +86,7 @@ class TrendingBookTile extends StatelessWidget {
                   book.author,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: AppColors.textMuted,
-                  ),
+                  style: TextStyle(fontSize: 12.sp, color: AppColors.textMuted),
                 ),
                 SizedBox(height: 0.8.h),
 
@@ -102,29 +99,42 @@ class TrendingBookTile extends StatelessWidget {
                 SizedBox(height: 0.8.h),
 
                 // Availability
-                Row(
-                  children: [
-                    Icon(
-                      book.isAvailable
-                          ? Icons.check_circle_outline_rounded
-                          : Icons.cancel_outlined,
-                      size: 1.8.h,
-                      color: book.isAvailable
-                          ? const Color(0xFF2E7D32)
-                          : Colors.red,
-                    ),
-                    SizedBox(width: 1.w),
-                    Text(
-                      book.isAvailable ? 'Available' : 'Unavailable',
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w600,
+                Container(
+                  width: 20.w,
+                  padding: EdgeInsets.symmetric(vertical: 1.w),
+
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    color: book.isAvailable
+                        ? Color(0xffe6faf3)
+                        : Color(0xfffeecec),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        book.isAvailable
+                            ? Icons.check_circle_outline_rounded
+                            : Icons.cancel_outlined,
+                        size: 1.8.h,
                         color: book.isAvailable
                             ? const Color(0xFF2E7D32)
                             : Colors.red,
                       ),
-                    ),
-                  ],
+                      SizedBox(width: 1.w),
+
+                      Text(
+                        book.isAvailable ? 'Available' : 'Borrowed',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: book.isAvailable
+                              ? const Color(0xFF2E7D32)
+                              : Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),

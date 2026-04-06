@@ -5,9 +5,8 @@ import 'package:unilib/keys.dart';
 class AiCoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Fetches context from Firestore (books) and initializes the GenerativeModel.
   Future<GenerativeModel> initModel() async {
-    await _firestore.collection('books').limit(1).get(); // test connection
+    await _firestore.collection('books').limit(1).get();
 
     final systemInstruction = Content.system(
       "You are the Unilib AI Assistant, a friendly and expert library assistant. "
@@ -33,38 +32,95 @@ class AiCoreService {
     );
   }
 
-  /// Searches for relevant books context based on a user query.
   Future<String> getRelevantBooksContext(String query) async {
     final lower = query.toLowerCase().trim();
     if (lower.isEmpty) return "No relevant books found.";
 
-    // Simple keyword extraction (words > 2 chars)
-    final words = lower.split(RegExp(r'\s+'))
-        .where((w) => w.length > 2 && !['the', 'and', 'for', 'you', 'have', 'books', 'book'].contains(w))
+    final words = lower
+        .split(RegExp(r'[\s,.;:!?]+'))
+        .where(
+          (w) =>
+              w.length > 2 &&
+              ![
+                'the',
+                'and',
+                'for',
+                'you',
+                'have',
+                'books',
+                'book',
+                'please',
+                'find',
+                'show',
+                'search',
+                'give',
+                'any',
+                'some',
+                'about',
+              ].contains(w),
+        )
         .toList();
 
+    if (words.isEmpty) {
+      return _getFallbackContext();
+    }
+
     try {
-      List<QueryDocumentSnapshot<Map<String, dynamic>>> allDocs = [];
-      
-      if (words.isNotEmpty) {
-        // Search by the first meaningful keyword
-        final searchKey = words.first;
-        final snap = await _firestore
-            .collection('books')
-            .where('title_lower', isGreaterThanOrEqualTo: searchKey)
-            .where('title_lower', isLessThan: '${searchKey}z')
-            .limit(10)
-            .get();
-        allDocs.addAll(snap.docs);
+      final List<QueryDocumentSnapshot<Map<String, dynamic>>> allDocs = [];
+      final Set<String> seenIds = {};
+
+      final searchTasks = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
+
+      for (final word in words.take(3)) {
+        // 1. Title prefix search
+        searchTasks.add(
+          _firestore
+              .collection('books')
+              .where('title_lower', isGreaterThanOrEqualTo: word)
+              .where('title_lower', isLessThan: '${word}z')
+              .limit(5)
+              .get(),
+        );
+
+        // 2. Tags array search
+        searchTasks.add(
+          _firestore
+              .collection('books')
+              .where('tags', arrayContains: word)
+              .limit(5)
+              .get(),
+        );
       }
 
-      // If no prefix matches, try searching by category if any keyword matches a category
-      if (allDocs.isEmpty) {
-        final fallbackSnap = await _firestore
+      final results = await Future.wait(searchTasks);
+
+      for (final snap in results) {
+        for (final doc in snap.docs) {
+          if (!seenIds.contains(doc.id)) {
+            allDocs.add(doc);
+            seenIds.add(doc.id);
+          }
+        }
+      }
+
+      if (allDocs.isEmpty && words.isNotEmpty) {
+        final catSnap = await _firestore
             .collection('books')
-            .limit(10)
+            .where('category', isGreaterThanOrEqualTo: words.first)
+            .where('category', isLessThan: '${words.first}z')
+            .limit(5)
             .get();
-        allDocs.addAll(fallbackSnap.docs);
+
+        for (final doc in catSnap.docs) {
+          if (!seenIds.contains(doc.id)) {
+            allDocs.add(doc);
+            seenIds.add(doc.id);
+          }
+        }
+      }
+
+      if (allDocs.isEmpty) {
+        return _getFallbackContext();
       }
 
       return _formatContext(allDocs);
@@ -73,7 +129,20 @@ class AiCoreService {
     }
   }
 
-  String _formatContext(List<QueryDocumentSnapshot<Map<String, dynamic>>> docs) {
+  Future<String> _getFallbackContext() async {
+    try {
+      final snap = await _firestore.collection('books').limit(5).get();
+      if (snap.docs.isEmpty) return "The library catalog is currently empty.";
+
+      return "I couldn't find exact matches for your specific keywords, but here are some popular books in our library:\n\n${_formatContext(snap.docs)}";
+    } catch (e) {
+      return "Error fetching fallback context: $e";
+    }
+  }
+
+  String _formatContext(
+    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
+  ) {
     if (docs.isEmpty) {
       return "The library catalog is currently unavailable.";
     }
@@ -93,7 +162,6 @@ class AiCoreService {
     }).join('\n\n')}";
   }
 
-  /// Convenience method to start a new chat with history or without.
   ChatSession startChat(GenerativeModel model, {List<Content>? history}) {
     return model.startChat(history: history);
   }

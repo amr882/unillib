@@ -6,17 +6,13 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 
-import 'package:unilib/core/service/notification_service.dart';
+
 
 class SuccessTicketDialog extends StatefulWidget {
   final Book book;
   final String? customQrData;
 
-  const SuccessTicketDialog({
-    super.key,
-    required this.book,
-    this.customQrData,
-  });
+  const SuccessTicketDialog({super.key, required this.book, this.customQrData});
 
   @override
   State<SuccessTicketDialog> createState() => _SuccessTicketDialogState();
@@ -30,15 +26,11 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
   @override
   void initState() {
     super.initState();
-    _qrData = widget.customQrData ??
+    _qrData =
+        widget.customQrData ??
         'BORROW-${widget.book.id}-${DateTime.now().millisecondsSinceEpoch}';
-    
-    // Send success notification
-    NotificationService().showNotification(
-      id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-      title: 'Borrowing Successful!',
-      body: 'You have successfully borrowed "${widget.book.title}". Your pass is ready!',
-    );
+
+
   }
 
   @override
@@ -52,38 +44,38 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
         children: [
           // ── The Ticket ──────────────────────────────────────────────────
           GestureDetector(
-            onPanUpdate: (details) {
-              setState(() {
-                _rotationY += details.delta.dx / 100;
-                _rotationX -= details.delta.dy / 100;
-                
-                // Clamp rotation for realism
-                _rotationX = _rotationX.clamp(-0.2, 0.2);
-                _rotationY = _rotationY.clamp(-0.2, 0.2);
-              });
-            },
-            onPanEnd: (_) {
-              setState(() {
-                _rotationX = 0;
-                _rotationY = 0;
-              });
-            },
-            child: Transform(
-              alignment: FractionalOffset.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.001) // perspective
-                ..rotateX(_rotationX)
-                ..rotateY(_rotationY),
-              child: _MetallicTicket(
-                book: widget.book,
-                qrData: _qrData,
-              ),
-            ),
-          ).animate().scale(
+                onPanUpdate: (details) {
+                  setState(() {
+                    _rotationY += details.delta.dx / 100;
+                    _rotationX -= details.delta.dy / 100;
+
+                    // Clamp rotation for realism
+                    _rotationX = _rotationX.clamp(-0.2, 0.2);
+                    _rotationY = _rotationY.clamp(-0.2, 0.2);
+                  });
+                },
+                onPanEnd: (_) {
+                  setState(() {
+                    _rotationX = 0;
+                    _rotationY = 0;
+                  });
+                },
+                child: Transform(
+                  alignment: FractionalOffset.center,
+                  transform: Matrix4.identity()
+                    ..setEntry(3, 2, 0.001) // perspective
+                    ..rotateX(_rotationX)
+                    ..rotateY(_rotationY),
+                  child: _MetallicTicket(book: widget.book, qrData: _qrData),
+                ),
+              )
+              .animate()
+              .scale(
                 duration: 600.ms,
                 curve: Curves.elasticOut,
                 begin: const Offset(0.5, 0.5),
-              ).fadeIn(),
+              )
+              .fadeIn(),
 
           SizedBox(height: 4.h),
 
@@ -114,10 +106,7 @@ class _MetallicTicket extends StatelessWidget {
   final Book book;
   final String qrData;
 
-  const _MetallicTicket({
-    required this.book,
-    required this.qrData,
-  });
+  const _MetallicTicket({required this.book, required this.qrData});
 
   @override
   Widget build(BuildContext context) {
@@ -143,10 +132,7 @@ class _MetallicTicket extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF1E2A38),
-                    Color(0xFF0C1B2E),
-                  ],
+                  colors: [Color(0xFF1E2A38), Color(0xFF0C1B2E)],
                 ),
               ),
             ),
@@ -265,7 +251,11 @@ class _MetallicTicket extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _TicketMeta(label: 'ID', value: '#${book.id.substring(0, 5).toUpperCase()}'),
+                            _TicketMeta(
+                              label: 'ID',
+                              value:
+                                  '#${book.id.substring(0, 5).toUpperCase()}',
+                            ),
                             SizedBox(width: 8.w),
                             _TicketMeta(label: 'DUE', value: 'APR 14'),
                           ],
