@@ -6,15 +6,13 @@ import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 
+
+
 class SuccessTicketDialog extends StatefulWidget {
   final Book book;
-  final String borrowId;
+  final String? customQrData;
 
-  const SuccessTicketDialog({
-    super.key,
-    required this.book,
-    required this.borrowId,
-  });
+  const SuccessTicketDialog({super.key, required this.book, this.customQrData});
 
   @override
   State<SuccessTicketDialog> createState() => _SuccessTicketDialogState();
@@ -24,29 +22,15 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
   double _rotationX = 0;
   double _rotationY = 0;
   late final String _qrData;
-  late final String _dueDate;
 
   @override
   void initState() {
     super.initState();
-    _qrData = 'UNILIB-BORROW:${widget.borrowId}';
+    _qrData =
+        widget.customQrData ??
+        'BORROW-${widget.book.id}-${DateTime.now().millisecondsSinceEpoch}';
 
-    final due = DateTime.now().add(const Duration(hours: 48));
-    const months = [
-      'JAN',
-      'FEB',
-      'MAR',
-      'APR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AUG',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DEC',
-    ];
-    _dueDate = '${months[due.month - 1]} ${due.day}';
+
   }
 
   @override
@@ -82,11 +66,7 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
                     ..setEntry(3, 2, 0.001) // perspective
                     ..rotateX(_rotationX)
                     ..rotateY(_rotationY),
-                  child: _MetallicTicket(
-                    book: widget.book,
-                    qrData: _qrData,
-                    dueDate: _dueDate,
-                  ),
+                  child: _MetallicTicket(book: widget.book, qrData: _qrData),
                 ),
               )
               .animate()
@@ -125,13 +105,8 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
 class _MetallicTicket extends StatelessWidget {
   final Book book;
   final String qrData;
-  final String dueDate;
 
-  const _MetallicTicket({
-    required this.book,
-    required this.qrData,
-    required this.dueDate,
-  });
+  const _MetallicTicket({required this.book, required this.qrData});
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +257,7 @@ class _MetallicTicket extends StatelessWidget {
                                   '#${book.id.substring(0, 5).toUpperCase()}',
                             ),
                             SizedBox(width: 8.w),
-                            _TicketMeta(label: 'DUE', value: dueDate),
+                            _TicketMeta(label: 'DUE', value: 'APR 14'),
                           ],
                         ),
                       ],

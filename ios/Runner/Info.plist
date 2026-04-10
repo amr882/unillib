@@ -47,7 +47,5 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
-		<key>NSCameraUsageDescription</key>
-		<string>This app needs camera access to scan QR codes for borrowing books.</string>
 	</dict>
 </plist>
