@@ -25,7 +25,6 @@ class _BrowseScreenState extends State<BrowseScreen> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      context.read<UserBooksProvider>().releaseExpiredReservations();
       context.read<BookCatalogProvider>().fetchAllBooks();
     });
   }

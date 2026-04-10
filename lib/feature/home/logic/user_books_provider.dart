@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:unilib/core/model/book_model.dart';
-import 'package:unilib/core/service/notification_service.dart';
+import 'package:unilib/core/model/borrow_model.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 
 class UserBooksProvider extends ChangeNotifier {
@@ -13,9 +13,7 @@ class UserBooksProvider extends ChangeNotifier {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  UserBooksProvider(this._catalogProvider) {
-    releaseExpiredReservations();
-  }
+  UserBooksProvider(this._catalogProvider);
 
   Future<bool> _checkConnectivity() async {
     final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
@@ -35,42 +33,39 @@ class UserBooksProvider extends ChangeNotifier {
     try {
       final docRef = _firestore.collection('books').doc(bookId);
 
-      String bookTitle = 'Book';
+      String borrowId = '';
+
       await _firestore.runTransaction((transaction) async {
         final snap = await transaction.get(docRef);
-        bookTitle = snap.data()?['title'] ?? 'Book';
+        final bookTitle = snap.data()?['title'] ?? 'Book';
+        final bookAuthor = snap.data()?['author'] ?? 'Unknown';
+        final bookCoverUrl = snap.data()?['cover_url'] ?? '';
 
         final available = (snap.data()?['available_copies'] ?? 0) as int;
-        final borrowedBy = List<dynamic>.from(
-          snap.data()?['borrowed_by'] ?? [],
-        );
-        final reservations = Map<String, dynamic>.from(
-          snap.data()?['reservations'] ?? {},
-        );
-        final now = DateTime.now();
-        reservations.removeWhere((uid, expiryTs) {
-          final expiry = (expiryTs as Timestamp).toDate();
-          return expiry.isBefore(now);
-        });
+        final borrowedBy = List<dynamic>.from(snap.data()?['borrowed_by'] ?? []);
+        final reservations = Map<String, dynamic>.from(snap.data()?['reservations'] ?? {});
 
         if (available <= 0) throw Exception('no_copies');
         if (borrowedBy.contains(userId)) throw Exception('already_borrowed');
-        if (reservations.containsKey(userId)) {
-          throw Exception('already_reserved');
-        }
 
-        // Enforce borrow limit of 3 books per user
-        final userBorrowSnap = await _firestore
-            .collection('books')
-            .where('borrowed_by', arrayContains: userId)
-            .count()
+        // Enforce borrow limit of 3 books per user 
+        // Note: in transaction this is best-effort unless we use a counters doc or specific user collection limits
+        QuerySnapshot activeBorrows = await _firestore
+            .collection('borrows')
+            .where('userId', isEqualTo: userId)
+            .where('status', whereIn: ['pending_pickup', 'active_borrow'])
             .get();
-        final totalBorrowed = userBorrowSnap.count ?? 0;
-        if (totalBorrowed >= 3) throw Exception('borrow_limit');
 
-        // Reserve for 3 days
-        final expiry = Timestamp.fromDate(now.add(const Duration(days: 3)));
-        reservations[userId] = expiry;
+        if (activeBorrows.docs.length >= 3) throw Exception('borrow_limit');
+
+        final newBorrowRef = _firestore.collection('borrows').doc();
+        borrowId = newBorrowRef.id;
+
+        final now = DateTime.now();
+        final expiry = Timestamp.fromDate(now.add(const Duration(hours: 48)));
+        
+        reservations[userId] = expiry; 
+        reservations['${userId}_borrowId'] = borrowId; // link them
 
         transaction.update(docRef, {
           'borrowed_by': FieldValue.arrayUnion([userId]),
@@ -78,29 +73,34 @@ class UserBooksProvider extends ChangeNotifier {
           'borrow_count': FieldValue.increment(1),
           'is_available': available - 1 > 0,
           'reservations': reservations,
-          'reservation_expires_at': expiry,
         });
+
+        BorrowRecord record = BorrowRecord(
+          borrowId: borrowId,
+          userId: userId,
+          bookId: bookId,
+          bookTitle: bookTitle,
+          bookAuthor: bookAuthor,
+          bookCoverUrl: bookCoverUrl,
+          status: BorrowStatus.pendingPickup,
+          createdAt: now,
+          pickupDeadline: now.add(const Duration(hours: 48)),
+        );
+
+        transaction.set(newBorrowRef, record.toMap());
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: true);
 
-      // Schedule notification for 2 days from now (1 day before expiry)
-      await NotificationService().scheduleNotification(
-        id: bookId.hashCode,
-        title: 'Return Book Reminder',
-        body: 'Your reservation for "$bookTitle" expires in 24 hours. Please return it soon!',
-        scheduledDate: DateTime.now().add(const Duration(days: 2)),
-      );
-
+      // We can pass the borrowId via provider to standard widgets if necessary, or let them refetch.
+      notifyListeners();
       return true;
     } on Exception catch (e) {
       final msg = e.toString();
       if (msg.contains('no_copies')) {
         _error = 'No copies available.';
       } else if (msg.contains('already_borrowed')) {
-        _error = 'You already borrowed this book.';
-      } else if (msg.contains('already_reserved')) {
-        _error = 'You already reserved this book.';
+        _error = 'You already requested this book.';
       } else if (msg.contains('borrow_limit')) {
         _error = 'You can only borrow 3 books at a time.';
       } else {
@@ -111,69 +111,95 @@ class UserBooksProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> releaseExpiredReservations() async {
-    try {
-      final now = Timestamp.now();
-      final snap = await _firestore
-          .collection('books')
-          .where('reservation_expires_at', isLessThan: now)
-          .get();
-
-      for (final doc in snap.docs) {
-        final data = doc.data();
-        final reservations = Map<String, dynamic>.from(
-          data['reservations'] ?? {},
-        );
-
-        // Find expired user IDs
-        final expiredUsers = reservations.entries
-            .where(
-              (e) => (e.value as Timestamp).toDate().isBefore(now.toDate()),
-            )
-            .map((e) => e.key)
-            .toList();
-
-        if (expiredUsers.isEmpty) continue;
-
-        reservations.removeWhere((uid, _) => expiredUsers.contains(uid));
-
-        await doc.reference.update({
-          'borrowed_by': FieldValue.arrayRemove(expiredUsers),
-          'available_copies': FieldValue.increment(expiredUsers.length),
-          'reservations': reservations,
-          'is_available': true,
-        });
-      }
-    } catch (e) {
-      debugPrint('releaseExpiredReservations error: $e');
-    }
-  }
-
-  Future<bool> returnBook({
+  Future<bool> cancelPendingBorrow({
     required String bookId,
     required String userId,
+    required String borrowId,
   }) async {
     if (!await _checkConnectivity()) return false;
     try {
-      await _firestore.collection('books').doc(bookId).update({
-        'borrowed_by': FieldValue.arrayRemove([userId]),
-        'available_copies': FieldValue.increment(1),
-        'reservations.$userId': FieldValue.delete(),
+      await _firestore.runTransaction((transaction) async {
+        final bookRef = _firestore.collection('books').doc(bookId);
+        final borrowRef = _firestore.collection('borrows').doc(borrowId);
+        
+        final borrowDoc = await transaction.get(borrowRef);
+        final bookDoc = await transaction.get(bookRef);
+        
+        if (borrowDoc.exists) {
+          final record = BorrowRecord.fromMap(borrowDoc.data()!);
+          if (record.status != BorrowStatus.pendingPickup) {
+            throw Exception('not_cancellable');
+          }
+          
+          transaction.update(borrowRef, {
+            'status': 'cancelled'
+          });
+        }
+        
+        if (bookDoc.exists) {
+          final bookData = bookDoc.data()!;
+          int copies = bookData['available_copies'] ?? 0;
+          List borrowedBy = List.from(bookData['borrowed_by'] ?? []);
+          Map reservations = Map.from(bookData['reservations'] ?? {});
+          
+          borrowedBy.remove(userId);
+          reservations.remove(userId);
+          reservations.remove('${userId}_borrowId');
+          
+          transaction.update(bookRef, {
+            'available_copies': copies + 1,
+            'borrowed_by': borrowedBy,
+            'reservations': reservations,
+          });
+        }
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: false);
-
-      // Cancel the scheduled notification
-      await NotificationService().cancelNotification(bookId.hashCode);
-
+      notifyListeners();
       return true;
     } catch (e) {
-      _error = 'Failed to return: $e';
+      _error = 'Failed to cancel: $e';
+      if (e.toString().contains('not_cancellable')) {
+        _error = 'Cannot cancel active borrows.';
+      }
       notifyListeners();
       return false;
     }
   }
+  
+  // Legacy method for transition compatibility - if it exists elsewhere, it routes to cancel
+  Future<bool> returnBook({
+    required String bookId,
+    required String userId,
+  }) async {
+    // This is a dangerous method now that admin controls return.
+    _error = "Please bring the book to the library desk to return.";
+    notifyListeners();
+    return false;
+  }
 
+  Future<List<BorrowRecord>> fetchUserBorrows(String userId) async {
+    if (!await _checkConnectivity()) return [];
+    try {
+      final snap = await _firestore
+          .collection('borrows')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final records = snap.docs.map((doc) => BorrowRecord.fromMap(doc.data()))
+          .where((r) => r.status == BorrowStatus.pendingPickup || r.status == BorrowStatus.activeBorrow)
+          .toList();
+      
+      records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return records;
+    } catch (e) {
+      _error = 'Failed to load borrow records: $e';
+      notifyListeners();
+      return [];
+    }
+  }
+
+  // Fallback for widgets expecting books
   Future<List<Book>> fetchUserBorrowedBooks(String userId) async {
     try {
       final snap = await _firestore

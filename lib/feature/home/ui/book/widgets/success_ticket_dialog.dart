@@ -10,9 +10,9 @@ import 'package:unilib/core/theme/app_colors.dart';
 
 class SuccessTicketDialog extends StatefulWidget {
   final Book book;
-  final String? customQrData;
+  final String borrowId;
 
-  const SuccessTicketDialog({super.key, required this.book, this.customQrData});
+  const SuccessTicketDialog({super.key, required this.book, required this.borrowId});
 
   @override
   State<SuccessTicketDialog> createState() => _SuccessTicketDialogState();
@@ -26,9 +26,7 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
   @override
   void initState() {
     super.initState();
-    _qrData =
-        widget.customQrData ??
-        'BORROW-${widget.book.id}-${DateTime.now().millisecondsSinceEpoch}';
+    _qrData = 'UNILIB-BORROW:${widget.borrowId}';
 
 
   }
