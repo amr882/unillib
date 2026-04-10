@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
+import 'package:unilib/core/model/borrow_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 import 'borrow_action_sheet.dart';
 import 'success_ticket_dialog.dart';
 
-
 class ActionButtons extends StatefulWidget {
   final Book book;
   final bool isLoading;
-  final bool alreadyBorrowed;
+  final BorrowRecord? currentBorrow;
   final String studentId;
   final VoidCallback onBorrowTap;
 
@@ -18,7 +18,7 @@ class ActionButtons extends StatefulWidget {
     super.key,
     required this.book,
     required this.isLoading,
-    required this.alreadyBorrowed,
+    required this.currentBorrow,
     required this.studentId,
     required this.onBorrowTap,
   });
@@ -28,7 +28,6 @@ class ActionButtons extends StatefulWidget {
 }
 
 class _ActionButtonsState extends State<ActionButtons> {
-
   Future<void> _showBorrowConfirm() async {
     showModalBottomSheet(
       context: context,
@@ -44,19 +43,27 @@ class _ActionButtonsState extends State<ActionButtons> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isBorrowed = widget.alreadyBorrowed;
+    final borrow = widget.currentBorrow;
+    final bool isBorrowed = borrow != null;
+    final bool isActiveBorrow = borrow?.status == BorrowStatus.activeBorrow;
+    final bool isPendingPickup = borrow?.status == BorrowStatus.pendingPickup;
     final bool isAvailable = widget.book.isAvailable;
-    
+
     // Main button logic
     Color btnColor = AppColors.gold;
     String btnText = 'Borrow Book';
     IconData btnIcon = Icons.book_rounded;
     bool canTap = !widget.isLoading;
 
-    if (isBorrowed) {
+    if (isActiveBorrow) {
       btnColor = const Color(0xFFB0BEC5);
-      btnText = 'Return Book';
-      btnIcon = Icons.check_circle_outline_rounded;
+      btnText = 'Currently Reading';
+      btnIcon = Icons.menu_book_rounded;
+      canTap = false; // Cannot cancel, only admin can return
+    } else if (isPendingPickup) {
+      btnColor = Colors.red.shade400;
+      btnText = 'Cancel Request';
+      btnIcon = Icons.cancel_outlined;
     } else if (!isAvailable) {
       btnColor = Colors.grey.withOpacity(0.5);
       btnText = 'Unavailable';
@@ -99,11 +106,7 @@ class _ActionButtonsState extends State<ActionButtons> {
                     : Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            btnIcon,
-                            color: Colors.white,
-                            size: 18,
-                          ),
+                          Icon(btnIcon, color: Colors.white, size: 18),
                           SizedBox(width: 2.w),
                           Text(
                             btnText,
@@ -128,7 +131,7 @@ class _ActionButtonsState extends State<ActionButtons> {
                 barrierColor: Colors.black87,
                 builder: (_) => SuccessTicketDialog(
                   book: widget.book,
-                  customQrData: '${widget.book.id}-${widget.studentId}',
+                  borrowId: borrow.borrowId,
                 ),
               );
             },
@@ -140,10 +143,7 @@ class _ActionButtonsState extends State<ActionButtons> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: AppColors.gold.withOpacity(0.3)),
               ),
-              child: const Icon(
-                Icons.qr_code_rounded,
-                color: AppColors.gold,
-              ),
+              child: const Icon(Icons.qr_code_rounded, color: AppColors.gold),
             ),
           ),
         ],
@@ -151,4 +151,3 @@ class _ActionButtonsState extends State<ActionButtons> {
     );
   }
 }
-

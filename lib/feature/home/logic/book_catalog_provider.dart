@@ -209,7 +209,7 @@ class BookCatalogProvider extends ChangeNotifier {
       _recentlyViewed = recentIds
           .map((id) => fetchedBooks.firstWhere(
                 (b) => b.id == id,
-                orElse: () => Book(id: '??', rawId: '??', title: '??', titleLower: '??', author: '??', authorLower: '??', description: '??', isbn: '??', year: '??', language: '??', category: '??', faculty: '??', facultySlug: '??', coverUrl: '??', sourceUrl: '??', createdAt: '??', updatedAt: '??', availableCopies: 0, totalCopies: 0, borrowCount: 0, isAvailable: false, tags: [], reservedBy: [], borrowedBy: [], location: BookLocation(building: '??', floor: '??', shelf: '??')),
+                orElse: () => Book(id: '??', rawId: '??', title: '??', titleLower: '??', author: '??', authorLower: '??', description: '??', isbn: '??', year: '??', language: '??', category: '??', faculty: '??', facultySlug: '??', coverUrl: '??', sourceUrl: '??', createdAt: '??', updatedAt: '??', availableCopies: 0, totalCopies: 0, borrowCount: 0, isAvailable: false, tags: [], reservedBy: [], borrowedBy: [], reservations: {}, location: BookLocation(building: '??', floor: '??', shelf: '??')),
               ))
           .where((b) => b.id != '??')
           .toList();

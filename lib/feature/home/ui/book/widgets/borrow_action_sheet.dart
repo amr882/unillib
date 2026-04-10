@@ -5,6 +5,16 @@ import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'slide_to_act.dart';
 
+String _formatDueDate(DateTime date) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  final day = date.day;
+  String suffix = 'th';
+  if (day == 1 || day == 21 || day == 31) suffix = 'st';
+  if (day == 2 || day == 22) suffix = 'nd';
+  if (day == 3 || day == 23) suffix = 'rd';
+  return '${months[date.month - 1]} $day$suffix';
+}
+
 class BorrowActionSheet extends StatelessWidget {
   final Book book;
   final VoidCallback onConfirm;
@@ -92,20 +102,25 @@ class BorrowActionSheet extends StatelessWidget {
             SizedBox(height: 4.h),
 
             // Borrow Info Cards
-            Row(
-              children: [
-                _InfoCard(
-                  icon: Icons.calendar_today_rounded,
-                  label: 'Due Date',
-                  value: 'Apr 14th', // Simulated
-                ),
-                SizedBox(width: 3.w),
-                _InfoCard(
-                  icon: Icons.history_rounded,
-                  label: 'Duration',
-                  value: '14 Days',
-                ),
-              ],
+            Builder(
+              builder: (_) {
+                final dueDate = DateTime.now().add(const Duration(hours: 48));
+                return Row(
+                  children: [
+                    _InfoCard(
+                      icon: Icons.calendar_today_rounded,
+                      label: 'Pickup Before',
+                      value: _formatDueDate(dueDate),
+                    ),
+                    SizedBox(width: 3.w),
+                    _InfoCard(
+                      icon: Icons.timer_outlined,
+                      label: 'Time Limit',
+                      value: '48 Hours',
+                    ),
+                  ],
+                );
+              },
             ),
 
             SizedBox(height: 5.h),

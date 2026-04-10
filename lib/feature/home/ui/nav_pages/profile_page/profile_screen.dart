@@ -37,16 +37,31 @@ class ProfileScreen extends StatelessWidget {
               bottom: false,
               child: Padding(
                 padding: EdgeInsets.fromLTRB(5.w, 4.h, 5.w, 3.h),
-                child: Center(
-                  child: Text(
-                    'My Profile',
-                    style: TextStyle(
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                      letterSpacing: 0.3,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: Text(
+                        'My Profile',
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.white,
+                          letterSpacing: 0.3,
+                        ),
+                      ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.9, 0.9)),
                     ),
-                  ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.9, 0.9)),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.qr_code_scanner, color: Colors.white54),
+                        onPressed: () {
+                          Navigator.pushNamed(context, Routes.adminQrScanner);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

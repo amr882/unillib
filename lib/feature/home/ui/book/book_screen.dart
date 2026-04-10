@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/model/book_model.dart';
+import 'package:unilib/core/model/borrow_model.dart';
 import 'package:unilib/core/service/notification_service.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
@@ -28,15 +29,14 @@ class BookScreen extends StatefulWidget {
 
 class _BookScreenState extends State<BookScreen> {
   bool _isLoading = false;
-  late bool _alreadyBorrowed;
+  BorrowRecord? _currentBorrow;
 
   late Future<List<Book>> _relatedFuture;
 
   @override
   void initState() {
     super.initState();
-    final userId = context.read<UserProvider>().user?.id ?? '';
-    _alreadyBorrowed = widget.book.borrowedBy.contains(userId);
+    _fetchCurrentBorrow();
 
     Future.microtask(() {
       context.read<BookCatalogProvider>().addRecentlyViewed(widget.book.id);
@@ -47,66 +47,90 @@ class _BookScreenState extends State<BookScreen> {
     );
   }
 
-  Future<void> _handleBorrow() async {
+  Future<void> _fetchCurrentBorrow() async {
     final userId = context.read<UserProvider>().user?.id ?? '';
     if (userId.isEmpty) return;
 
-    final bool wasBorrowed = _alreadyBorrowed;
+    final borrows = await context.read<UserBooksProvider>().fetchUserBorrows(
+      userId,
+    );
+    if (mounted) {
+      setState(() {
+        _currentBorrow = borrows
+            .where((b) => b.bookId == widget.book.id)
+            .firstOrNull;
+      });
+    }
+  }
+
+  Future<void> _handleBorrow() async {
+    final userProvider = context.read<UserProvider>();
+    final userId = userProvider.user?.id ?? '';
+    if (userId.isEmpty) return;
+
+    final bool wasBorrowed = _currentBorrow != null;
     setState(() => _isLoading = true);
 
-    final success = wasBorrowed
-        ? await context.read<UserBooksProvider>().returnBook(
-            bookId: widget.book.id,
-            userId: userId,
-          )
-        : await context.read<UserBooksProvider>().borrowBook(
-            bookId: widget.book.id,
-            userId: userId,
-          );
+    if (wasBorrowed) {
+      // "Return Book" is no longer user-initiated in the new flow.
+      // This branch is kept for safety but should not be reachable
+      // since the button is hidden for active_borrow state.
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.orange,
+          content: Text(
+            'Please bring the book to the library desk to return it.',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      );
+      return;
+    }
 
-    if (success) {
-      if (!wasBorrowed) {
-        NotificationService().showNotification(
-          id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
-          title: 'Borrowing Successful!',
-          body:
-              'You have successfully borrowed "${widget.book.title}". Your pass is ready!',
-        );
-        Navigator.pop(context);
-        final latestBook = context
-            .read<BookCatalogProvider>()
-            .recentlyViewed
-            .firstWhere(
-              (b) => b.id == widget.book.id,
-              orElse: () => widget.book,
-            );
-        showDialog(
-          context: context,
-          barrierColor: Colors.black87,
-          builder: (_) => SuccessTicketDialog(book: latestBook),
-        );
-      }
+    final book = widget.book;
+    final borrowId = await context.read<UserBooksProvider>().borrowBook(
+      bookId: book.id,
+      userId: userId,
+      bookTitle: book.title,
+      bookAuthor: book.author,
+      bookCoverUrl: book.coverUrl,
+    );
 
+    if (borrowId != null) {
+      NotificationService().showNotification(
+        id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
+        title: 'Borrow Requested!',
+        body: 'Show your QR pass to the librarian to pick up "${book.title}".',
+      );
+      Navigator.pop(context);
+      final latestBook = context
+          .read<BookCatalogProvider>()
+          .recentlyViewed
+          .firstWhere((b) => b.id == book.id, orElse: () => book);
+      showDialog(
+        context: context,
+        barrierColor: Colors.black87,
+        builder: (_) =>
+            SuccessTicketDialog(book: latestBook, borrowId: borrowId),
+      );
+
+      await _fetchCurrentBorrow();
       setState(() {
-        _alreadyBorrowed = !wasBorrowed;
         _isLoading = false;
       });
     } else {
       setState(() => _isLoading = false);
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: success ? AppColors.gold : Colors.redAccent,
-        content: Text(
-          success
-              ? (!wasBorrowed ? 'Book borrowed!' : 'Book returned!')
-              : context.read<UserBooksProvider>().error ??
-                    'Something went wrong.',
-          style: const TextStyle(color: Colors.white),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text(
+            context.read<UserBooksProvider>().error ?? 'Something went wrong.',
+            style: const TextStyle(color: Colors.white),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
 
   @override
@@ -131,8 +155,6 @@ class _BookScreenState extends State<BookScreen> {
         break;
       }
     }
-
-    _alreadyBorrowed = currentBook.borrowedBy.contains(userId);
 
     return Scaffold(
       backgroundColor: AppColors.navy,
@@ -187,7 +209,7 @@ class _BookScreenState extends State<BookScreen> {
                     ActionButtons(
                           book: currentBook,
                           isLoading: _isLoading,
-                          alreadyBorrowed: _alreadyBorrowed,
+                          currentBorrow: _currentBorrow,
                           studentId: userId,
                           onBorrowTap: _handleBorrow,
                         )
