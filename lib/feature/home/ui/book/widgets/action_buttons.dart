@@ -16,6 +16,7 @@ class ActionButtons extends StatefulWidget {
   final BorrowRecord? userBorrowRecord;
   final String studentId;
   final VoidCallback onBorrowTap;
+  final VoidCallback? onRefreshRequested;
 
   const ActionButtons({
     super.key,
@@ -24,6 +25,7 @@ class ActionButtons extends StatefulWidget {
     this.userBorrowRecord,
     required this.studentId,
     required this.onBorrowTap,
+    this.onRefreshRequested,
   });
 
   @override
@@ -31,6 +33,7 @@ class ActionButtons extends StatefulWidget {
 }
 
 class _ActionButtonsState extends State<ActionButtons> {
+  bool _isCancelling = false;
 
   Future<void> _showBorrowConfirm() async {
     showModalBottomSheet(
@@ -65,37 +68,89 @@ class _ActionButtonsState extends State<ActionButtons> {
           child: ScaleTransition(
             scale: scaleAnim,
             child: AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
               backgroundColor: Colors.white,
-              contentPadding: const EdgeInsets.all(24),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 20,
+              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.cancel_rounded, color: Colors.red, size: 48),
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.cancel_rounded,
+                      color: Colors.red,
+                      size: 32,
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   Text(
                     'Cancel Request',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.navy),
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.navy,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    'Do you want to cancel your pickup request for "${widget.book.title}"?',
+                    'Do you want to cancel your\npickup request for "${widget.book.title}"?\nDo you want to continue?',
                     textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textMuted,
+                      height: 1.55,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Row(
                     children: [
                       Expanded(
-                        child: TextButton(
+                        child: OutlinedButton(
                           onPressed: () => Navigator.pop(context, false),
-                          child: const Text('No'),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side: BorderSide(
+                              color: AppColors.navy.withOpacity(0.25),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                          ),
+                          child: const Text(
+                            'No, Keep It',
+                            style: TextStyle(color: AppColors.navy),
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context, true),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                          child: const Text('Yes, Cancel'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            'Yes, Cancel',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -109,19 +164,39 @@ class _ActionButtonsState extends State<ActionButtons> {
     );
 
     if (confirm == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cancelling...')),
-      );
+      setState(() => _isCancelling = true);
+      
       final provider = context.read<UserBooksProvider>();
       final success = await provider.cancelPendingBorrow(
         bookId: widget.book.id,
         userId: widget.studentId,
         borrowId: widget.userBorrowRecord!.borrowId,
       );
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Request Cancelled'), backgroundColor: Colors.green),
-        );
+
+      if (mounted) {
+        setState(() => _isCancelling = false);
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Cancel successfully'),
+              backgroundColor: Colors.green.shade600,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          );
+          // Notify parent to refresh data
+          widget.onRefreshRequested?.call();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.error ?? 'Failed to cancel request'),
+              backgroundColor: Colors.red.shade600,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     }
   }
@@ -134,15 +209,15 @@ class _ActionButtonsState extends State<ActionButtons> {
     Color btnColor = AppColors.gold;
     String btnText = 'Borrow Book';
     IconData btnIcon = Icons.book_rounded;
-    bool canTap = !widget.isLoading;
+    bool canTap = !widget.isLoading && !_isCancelling;
     VoidCallback? onTapAction = canTap ? _showBorrowConfirm : null;
 
     if (isBorrowed) {
       if (widget.userBorrowRecord!.status == BorrowStatus.pendingPickup) {
-        btnColor = Colors.red.shade400;
+        btnColor = Colors.red;
         btnText = 'Cancel Request';
         btnIcon = Icons.cancel_rounded;
-        onTapAction = _cancelBorrow;
+        onTapAction = canTap ? _cancelBorrow : null;
       } else {
         btnColor = const Color(0xFFB0BEC5);
         btnText = 'Currently Reading';
@@ -179,7 +254,7 @@ class _ActionButtonsState extends State<ActionButtons> {
                       ],
               ),
               child: Center(
-                child: widget.isLoading
+                child: (widget.isLoading || _isCancelling)
                     ? SizedBox(
                         height: 2.5.h,
                         width: 2.5.h,

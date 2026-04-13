@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -19,16 +17,21 @@ class _BorrowItem {
   _BorrowItem(this.record, this.book);
 }
 
-class BorrowedBooksSection extends StatefulWidget {
+class BorrowedBooksSheet extends StatefulWidget {
   final String userId;
+  final ScrollController? scrollController;
 
-  const BorrowedBooksSection({super.key, required this.userId});
+  const BorrowedBooksSheet({
+    super.key,
+    required this.userId,
+    this.scrollController,
+  });
 
   @override
-  State<BorrowedBooksSection> createState() => _BorrowedBooksSectionState();
+  State<BorrowedBooksSheet> createState() => _BorrowedBooksSheetState();
 }
 
-class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
+class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
   List<_BorrowItem>? _borrowItems;
   bool _isLoading = true;
   Timer? _countdownTimer;
@@ -37,7 +40,6 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
   void initState() {
     super.initState();
     _fetchBooks();
-    // Tick every minute to update countdown displays
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
     });
@@ -52,16 +54,19 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
   Future<void> _fetchBooks() async {
     final provider = context.read<UserBooksProvider>();
     final catalog = context.read<BookCatalogProvider>();
-    
+
     final records = await provider.fetchUserBorrows(widget.userId);
     final List<_BorrowItem> items = [];
-    
+
     for (final record in records) {
       Book? book = catalog.allBooks.cast<Book?>().firstWhere(
-        (b) => b?.id == record.bookId, 
-        orElse: () => null
+        (b) => b?.id == record.bookId,
+        orElse: () => null,
       );
-      
+
+      // Fetch from Firestore if not found in local catalog to ensure we have tags/info
+      book ??= await catalog.fetchBookById(record.bookId);
+
       book ??= Book(
         id: record.bookId,
         rawId: record.bookId,
@@ -89,10 +94,10 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
         borrowedBy: [record.userId],
         location: BookLocation(building: '', floor: '', shelf: ''),
       );
-      
+
       items.add(_BorrowItem(record, book));
     }
-    
+
     if (mounted) {
       setState(() {
         _borrowItems = items;
@@ -100,9 +105,15 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
       });
     }
   }
-  Future<void> _cancelBorrow(BuildContext context, _BorrowItem item, int index) async {
+
+  Future<void> _cancelBorrow(
+    BuildContext context,
+    _BorrowItem item,
+    int index,
+  ) async {
     final book = item.book;
     final record = item.record;
+
     final confirm = await showGeneralDialog<bool>(
       context: context,
       barrierColor: Colors.black54,
@@ -111,7 +122,10 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
       transitionDuration: const Duration(milliseconds: 320),
       pageBuilder: (context, anim, secondaryAnim) => const SizedBox(),
       transitionBuilder: (context, anim, secondaryAnim, child) {
-        final scaleAnim = CurvedAnimation(parent: anim, curve: Curves.easeOutBack);
+        final scaleAnim = CurvedAnimation(
+          parent: anim,
+          curve: Curves.easeOutBack,
+        );
         final fadeAnim = CurvedAnimation(parent: anim, curve: Curves.easeIn);
 
         return FadeTransition(
@@ -222,7 +236,9 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
         borrowId: record.borrowId,
       );
 
-      if (success && mounted) {
+      if (!mounted) return;
+
+      if (success) {
         setState(() {
           _borrowItems?.removeAt(index);
         });
@@ -236,7 +252,7 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
             ),
           ),
         );
-      } else if (mounted) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.error ?? 'Failed to cancel request'),
@@ -248,107 +264,202 @@ class _BorrowedBooksSectionState extends State<BorrowedBooksSection> {
     }
   }
 
-  Widget _buildCountdownChip(_BorrowItem item) {
-    return StatusCountdown(record: item.record);
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'My Borrowed Books',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w700,
-            color: AppColors.navy,
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.navyCard,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Fixed Header - Static and non-draggable for the sheet
+          _buildHeader(context),
+
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: AppColors.gold),
+                  )
+                : (_borrowItems == null || _borrowItems!.isEmpty)
+                    ? _buildEmptyState()
+                    : _buildBookList(),
           ),
-        ),
-        SizedBox(height: 2.h),
-        if (_isLoading)
-          const Center(child: CircularProgressIndicator(color: AppColors.gold))
-        else if (_borrowItems == null || _borrowItems!.isEmpty)
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(5.w, 0, 5.w, 1.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drag handle
           Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 2.h),
-              child: Text(
-                "You have not borrowed any books yet",
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppColors.textMuted,
-                  fontStyle: FontStyle.italic,
-                ),
+            child: Container(
+              margin: const EdgeInsets.symmetric(vertical: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.gold.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(2),
               ),
             ),
-          )
-        else
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _borrowItems!.length,
-            separatorBuilder: (context, index) => SizedBox(height: 2.h),
-            itemBuilder: (context, index) {
-              final item = _borrowItems![index];
-              final book = item.book;
-              final record = item.record;
-              
-              final canCancel = record.canUserCancel;
-              
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => BookScreen(book: book)),
-                  );
-                },
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TrendingBookTile(
-                      rank: index + 1,
-                      book: book,
-                      trailingWidget: canCancel 
-                        ? IconButton(
-                            icon: const Icon(Icons.cancel_rounded, color: Colors.red),
-                            onPressed: () => _cancelBorrow(context, item, index),
-                          )
-                        : IconButton(
-                            icon: const Icon(Icons.lock_outline, color: Colors.grey),
-                            tooltip: 'Return at library desk',
-                            onPressed: () {},
-                          ),
-                    ),
-                    const SizedBox(height: 6),
-                    Padding(
-                      padding: const EdgeInsets.only(left: 8),
-                      child: Row(
-                        children: [
-                          _buildCountdownChip(item),
-                          if (!canCancel) ...[
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                              ),
-                              child: const Text(
-                                'Reading', 
-                                style: TextStyle(fontSize: 10, color: Colors.blue, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ]
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'My Backpack',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.white,
+                ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: AppColors.white,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 0.5.h),
+          Text(
+            'Your currently borrowed and reserved books.',
+            style: TextStyle(fontSize: 13.sp, color: AppColors.textSub),
+          ),
+          SizedBox(height: 1.h),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return ListView(
+      controller: widget.scrollController,
+      children: [
+        SizedBox(height: 10.h),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.inventory_2_outlined,
+                size: 60,
+                color: AppColors.gold.withOpacity(0.3),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                "Your backpack is empty",
+                style: TextStyle(
+                  fontSize: 15.sp,
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 1.h),
+              Text(
+                "Borrow some books to see them here!",
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: AppColors.textSub,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBookList() {
+    return ListView.separated(
+      controller: widget.scrollController,
+      padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 4.h),
+      itemCount: _borrowItems!.length,
+      separatorBuilder: (context, index) => SizedBox(height: 2.h),
+      itemBuilder: (context, index) {
+        final item = _borrowItems![index];
+        final book = item.book;
+        final record = item.record;
+        final canCancel = record.canUserCancel;
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookScreen(book: book),
+              ),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TrendingBookTile(
+                rank: index + 1,
+                book: book,
+                isDark: true,
+                trailingWidget: canCancel
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.cancel_rounded,
+                          color: Colors.red,
+                        ),
+                        onPressed: () => _cancelBorrow(context, item, index),
+                      )
+                    : IconButton(
+                        icon: const Icon(
+                          Icons.lock_outline,
+                          color: Colors.grey,
+                        ),
+                        tooltip: 'Return at library desk',
+                        onPressed: () {},
                       ),
-                    ),
+              ),
+              const SizedBox(height: 6),
+              Padding(
+                padding: const EdgeInsets.only(left: 12),
+                child: Row(
+                  children: [
+                    StatusCountdown(record: item.record),
+                    if (!canCancel) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.blue.withOpacity(0.3),
+                          ),
+                        ),
+                        child: const Text(
+                          'Reading',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
-      ],
+        );
+      },
     );
   }
 }

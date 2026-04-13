@@ -7,7 +7,6 @@ import 'package:sizer/sizer.dart';
 
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
-import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'widgets/browse_search_bar.dart';
 import 'widgets/browse_book_tile.dart';

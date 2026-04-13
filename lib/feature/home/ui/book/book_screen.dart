@@ -1,5 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
-
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +17,7 @@ import 'package:unilib/feature/home/ui/book/widgets/header.dart';
 import 'package:unilib/feature/home/ui/book/widgets/location.dart';
 import 'package:unilib/feature/home/ui/book/widgets/tags.dart';
 import 'package:unilib/feature/home/ui/book/widgets/success_ticket_dialog.dart';
+import 'package:unilib/feature/home/ui/widgets/status_countdown.dart';
 
 class BookScreen extends StatefulWidget {
   final Book book;
@@ -30,6 +30,7 @@ class BookScreen extends StatefulWidget {
 class _BookScreenState extends State<BookScreen> {
   bool _isLoading = false;
   BorrowRecord? _userBorrowRecord;
+  Timer? _countdownTimer;
 
   late Future<List<Book>> _relatedFuture;
 
@@ -38,13 +39,25 @@ class _BookScreenState extends State<BookScreen> {
     super.initState();
     _fetchBorrowStatus();
 
+    _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
+      if (mounted) setState(() {});
+    });
+
     Future.microtask(() {
-      context.read<BookCatalogProvider>().addRecentlyViewed(widget.book.id);
+      if (mounted) {
+        context.read<BookCatalogProvider>().addRecentlyViewed(widget.book.id);
+      }
     });
 
     _relatedFuture = context.read<BookCatalogProvider>().getRelatedBooks(
       widget.book,
     );
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _fetchBorrowStatus() async {
@@ -188,12 +201,17 @@ class _BookScreenState extends State<BookScreen> {
                     SizedBox(height: 1.h),
                     LocationCard(book: currentBook),
                     SizedBox(height: 4.h),
+                    if (_userBorrowRecord != null) ...[
+                      StatusCountdown(record: _userBorrowRecord!),
+                      SizedBox(height: 1.5.h),
+                    ],
                     ActionButtons(
                           book: currentBook,
                           isLoading: _isLoading,
                           userBorrowRecord: _userBorrowRecord,
                           studentId: userId,
                           onBorrowTap: _handleBorrow,
+                          onRefreshRequested: _fetchBorrowStatus,
                         )
                         .animate()
                         .fadeIn(delay: 500.ms)

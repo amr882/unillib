@@ -44,8 +44,8 @@ class BookHeader extends StatelessWidget {
 
             // cover, title, author, stats
             Container(
-              height: 20.h,
-              width: 30.w,
+              height: 24.h,
+              width: 36.w,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [

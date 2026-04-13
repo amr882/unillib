@@ -95,14 +95,14 @@ class BorrowActionSheet extends StatelessWidget {
             Row(
               children: [
                 _InfoCard(
-                  icon: Icons.calendar_today_rounded,
-                  label: 'Due Date',
-                  value: 'Apr 14th', // Simulated
+                  icon: Icons.history_rounded,
+                  label: 'Pickup Window',
+                  value: '48 Hours',
                 ),
                 SizedBox(width: 3.w),
                 _InfoCard(
-                  icon: Icons.history_rounded,
-                  label: 'Duration',
+                  icon: Icons.calendar_today_rounded,
+                  label: 'Return Duration',
                   value: '14 Days',
                 ),
               ],

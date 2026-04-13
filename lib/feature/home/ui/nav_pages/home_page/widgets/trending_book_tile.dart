@@ -9,12 +9,16 @@ class TrendingBookTile extends StatelessWidget {
   final int rank;
   final Book book;
   final Widget? trailingWidget;
+  final bool isDark;
+  final Color? backgroundColor;
 
   const TrendingBookTile({
     super.key,
     required this.rank,
     required this.book,
     this.trailingWidget,
+    this.isDark = false,
+    this.backgroundColor,
   });
 
   @override
@@ -22,11 +26,12 @@ class TrendingBookTile extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(3.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: backgroundColor ?? (isDark ? AppColors.navyCard : Colors.white),
         borderRadius: BorderRadius.circular(14),
+        border: isDark ? Border.all(color: AppColors.navyBorder.withOpacity(0.5), width: 1) : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -39,8 +44,8 @@ class TrendingBookTile extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              width: 16.w,
-              height: 11.h,
+              width: 19.w,
+              height: 13.h,
               child:
                   book.coverUrl.isNotEmpty &&
                       book.coverUrl != '??' &&
@@ -75,7 +80,7 @@ class TrendingBookTile extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 15.sp,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.navy,
+                    color: isDark ? AppColors.white : AppColors.navy,
                     height: 1.3,
                   ),
                 ),
@@ -86,7 +91,10 @@ class TrendingBookTile extends StatelessWidget {
                   book.author,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.sp, color: AppColors.textMuted),
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: isDark ? AppColors.textSub : AppColors.textMuted,
+                  ),
                 ),
                 SizedBox(height: 0.8.h),
 
@@ -152,14 +160,14 @@ class TrendingBookTile extends StatelessWidget {
     final chips = <Widget>[];
 
     if (book.category != '??') {
-      chips.add(_chip(book.category, AppColors.blue));
+      chips.add(_chip(book.category, isDark ? AppColors.gold : AppColors.blue));
     }
 
     if (book.tags.isNotEmpty) {
-      chips.add(_chip(book.tags.first, AppColors.navy));
+      chips.add(_chip(book.tags.first, isDark ? AppColors.textLight : AppColors.navy));
     } else if (book.faculty != '??' && book.category != book.faculty) {
       final label = book.facultySlug != '??' ? book.facultySlug : book.faculty;
-      chips.add(_chip(label, AppColors.navy));
+      chips.add(_chip(label, isDark ? AppColors.textLight : AppColors.navy));
     }
 
     return chips;

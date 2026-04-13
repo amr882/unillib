@@ -5,6 +5,10 @@ import 'package:unilib/feature/home/ui/nav_pages/ai_page/ai_assistant.dart';
 import 'package:unilib/feature/home/ui/nav_pages/browse_page/browse_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/profile_page/profile_screen.dart';
+import 'package:unilib/feature/home/ui/widgets/backpack_fab.dart';
+import 'package:provider/provider.dart';
+import 'package:unilib/core/logic/user_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
 
 class MainScaffold extends StatefulWidget {
   const MainScaffold({super.key});
@@ -15,6 +19,41 @@ class MainScaffold extends StatefulWidget {
 
 class _MainScaffoldState extends State<MainScaffold> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initData();
+    });
+  }
+
+  void _initData() {
+    final userProvider = context.read<UserProvider>();
+    final booksProvider = context.read<UserBooksProvider>();
+
+    if (userProvider.user != null) {
+      booksProvider.syncBorrowCount(userProvider.user!.id);
+    } else {
+      // If user isn't loaded yet, we can listen for one update
+      userProvider.addListener(_onUserLoaded);
+    }
+  }
+
+  void _onUserLoaded() {
+    final userProvider = context.read<UserProvider>();
+    if (userProvider.user != null) {
+      context.read<UserBooksProvider>().syncBorrowCount(userProvider.user!.id);
+      userProvider.removeListener(_onUserLoaded);
+    }
+  }
+
+  @override
+  void dispose() {
+    // Ensure listener is removed if the widget is disposed before user loads
+    context.read<UserProvider>().removeListener(_onUserLoaded);
+    super.dispose();
+  }
 
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Icons.home_rounded, label: 'Home'),
@@ -46,6 +85,7 @@ class _MainScaffoldState extends State<MainScaffold> {
         duration: const Duration(milliseconds: 250),
         child: _buildScreen(_currentIndex),
       ),
+      floatingActionButton: const BackpackFab(),
       bottomNavigationBar: _AppBottomNavBar(
         currentIndex: _currentIndex,
         items: _navItems,

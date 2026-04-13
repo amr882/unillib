@@ -7,7 +7,6 @@ import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/ui/nav_pages/profile_page/widgets/profile_avatar_card.dart';
 import 'package:unilib/feature/home/ui/nav_pages/profile_page/widgets/profile_info_card.dart';
-import 'package:unilib/feature/home/ui/nav_pages/profile_page/widgets/borrowed_books_section.dart';
 import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/core/helper/extention.dart';
 
@@ -70,14 +69,6 @@ class ProfileScreen extends StatelessWidget {
                     user: user,
                     isLoading: userProvider.isLoading,
                   ).animate().fadeIn(delay: 250.ms).slideX(begin: 0.2, end: 0),
-                  SizedBox(height: 4.h),
-                  if (user != null)
-                    BorrowedBooksSection(userId: user.id)
-                        .animate()
-                        .fadeIn(delay: 400.ms)
-                        .slideX(begin: 0.2, end: 0)
-                  else
-                    const SizedBox.shrink(),
                   SizedBox(height: 5.h),
                   // Sign Out Button
                   SizedBox(

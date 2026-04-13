@@ -31,8 +31,8 @@ class BrowseBookTile extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: SizedBox(
-              width: 16.w,
-              height: 11.h,
+              width: 19.w,
+              height: 13.h,
               child: book.coverUrl != '??'
                   ? CachedNetworkImage(
                       imageUrl: book.coverUrl,

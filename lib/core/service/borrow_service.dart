@@ -71,6 +71,7 @@ class BorrowService {
           
           transaction.update(bookRef, {
             'available_copies': copies + 1,
+            'is_available': true,
             'borrowed_by': borrowedBy,
             'reservations': reservations,
           });

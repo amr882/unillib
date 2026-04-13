@@ -7,8 +7,10 @@ import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 
 class UserBooksProvider extends ChangeNotifier {
   final BookCatalogProvider _catalogProvider;
+  int _activeBorrowCount = 0;
   String? _error;
 
+  int get activeBorrowCount => _activeBorrowCount;
   String? get error => _error;
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -91,9 +93,7 @@ class UserBooksProvider extends ChangeNotifier {
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: true);
-
-      // We can pass the borrowId via provider to standard widgets if necessary, or let them refetch.
-      notifyListeners();
+      await syncBorrowCount(userId);
       return true;
     } on Exception catch (e) {
       final msg = e.toString();
@@ -148,6 +148,7 @@ class UserBooksProvider extends ChangeNotifier {
           
           transaction.update(bookRef, {
             'available_copies': copies + 1,
+            'is_available': true,
             'borrowed_by': borrowedBy,
             'reservations': reservations,
           });
@@ -155,7 +156,7 @@ class UserBooksProvider extends ChangeNotifier {
       });
 
       _catalogProvider.updateBookLocally(bookId, userId, borrowed: false);
-      notifyListeners();
+      await syncBorrowCount(userId);
       return true;
     } catch (e) {
       _error = 'Failed to cancel: $e';
@@ -190,12 +191,30 @@ class UserBooksProvider extends ChangeNotifier {
           .where((r) => r.status == BorrowStatus.pendingPickup || r.status == BorrowStatus.activeBorrow)
           .toList();
       
+      _activeBorrowCount = records.length;
       records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      notifyListeners();
       return records;
     } catch (e) {
       _error = 'Failed to load borrow records: $e';
       notifyListeners();
       return [];
+    }
+  }
+
+  Future<void> syncBorrowCount(String userId) async {
+    if (!await _checkConnectivity()) return;
+    try {
+      final snap = await _firestore
+          .collection('borrows')
+          .where('userId', isEqualTo: userId)
+          .where('status', whereIn: ['pending_pickup', 'active_borrow'])
+          .get();
+      
+      _activeBorrowCount = snap.docs.length;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error syncing borrow count: $e');
     }
   }
 
