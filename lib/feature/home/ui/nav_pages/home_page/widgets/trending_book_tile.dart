@@ -28,7 +28,10 @@ class TrendingBookTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? (isDark ? AppColors.navyCard : Colors.white),
         borderRadius: BorderRadius.circular(14),
-        border: isDark ? Border.all(color: AppColors.navyBorder.withOpacity(0.5), width: 1) : null,
+        border: Border.all(
+          color: isDark ? AppColors.navyBorder.withOpacity(0.5) : AppColors.navy.withOpacity(0.08),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.06),
@@ -114,8 +117,8 @@ class TrendingBookTile extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
                     color: book.isAvailable
-                        ? Color(0xffe6faf3)
-                        : Color(0xfffeecec),
+                        ? const Color(0xffD1F7E9)
+                        : const Color(0xffFFDADA),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

@@ -229,6 +229,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
     );
 
     if (confirm == true && mounted) {
+      if (!context.mounted) return;
       final provider = context.read<UserBooksProvider>();
       final success = await provider.cancelPendingBorrow(
         bookId: book.id,
@@ -242,6 +243,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
         setState(() {
           _borrowItems?.removeAt(index);
         });
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Cancel successfully'),
@@ -253,6 +255,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
           ),
         );
       } else {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(provider.error ?? 'Failed to cancel request'),
@@ -268,13 +271,12 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.navyCard,
+        color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Fixed Header - Static and non-draggable for the sheet
           _buildHeader(context),
 
           Expanded(
@@ -283,8 +285,8 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
                     child: CircularProgressIndicator(color: AppColors.gold),
                   )
                 : (_borrowItems == null || _borrowItems!.isEmpty)
-                    ? _buildEmptyState()
-                    : _buildBookList(),
+                ? _buildEmptyState()
+                : _buildBookList(),
           ),
         ],
       ),
@@ -304,7 +306,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: AppColors.gold.withOpacity(0.3),
+                color: AppColors.navy.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -317,22 +319,19 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.white,
+                  color: AppColors.navy,
                 ),
               ),
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: AppColors.white,
-                ),
+                icon: const Icon(Icons.close_rounded, color: AppColors.navy),
               ),
             ],
           ),
           SizedBox(height: 0.5.h),
           Text(
             'Your currently borrowed and reserved books.',
-            style: TextStyle(fontSize: 13.sp, color: AppColors.textSub),
+            style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
           ),
           SizedBox(height: 1.h),
         ],
@@ -359,17 +358,14 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
                 "Your backpack is empty",
                 style: TextStyle(
                   fontSize: 15.sp,
-                  color: AppColors.white,
+                  color: AppColors.navy,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               SizedBox(height: 1.h),
               Text(
                 "Borrow some books to see them here!",
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: AppColors.textSub,
-                ),
+                style: TextStyle(fontSize: 12.sp, color: AppColors.textMuted),
               ),
             ],
           ),
@@ -394,9 +390,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => BookScreen(book: book),
-              ),
+              MaterialPageRoute(builder: (_) => BookScreen(book: book)),
             );
           },
           child: Column(
@@ -405,7 +399,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
               TrendingBookTile(
                 rank: index + 1,
                 book: book,
-                isDark: true,
+                isDark: false,
                 trailingWidget: canCancel
                     ? IconButton(
                         icon: const Icon(

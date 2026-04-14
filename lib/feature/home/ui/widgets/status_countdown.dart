@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unilib/core/model/borrow_model.dart';
+import 'package:sizer/sizer.dart';
 
 class StatusCountdown extends StatelessWidget {
   final BorrowRecord record;
@@ -44,7 +45,7 @@ class StatusCountdown extends StatelessWidget {
           Text(
             text,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 12.sp,
               fontWeight: FontWeight.w700,
               color: color,
             ),

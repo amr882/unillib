@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/logic/user_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
-import 'package:unilib/feature/home/ui/nav_pages/profile_page/widgets/borrowed_books_sheet.dart';
+import 'package:unilib/feature/home/ui/backpack/backpack_screen.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class BackpackFab extends StatefulWidget {
@@ -42,18 +42,10 @@ class _BackpackFabState extends State<BackpackFab> {
             final user = context.read<UserProvider>().user;
             if (user == null) return;
 
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.transparent,
-              builder: (context) => DraggableScrollableSheet(
-                initialChildSize: 0.7,
-                minChildSize: 0.5,
-                maxChildSize: 0.95,
-                builder: (_, controller) => BorrowedBooksSheet(
-                  userId: user.id,
-                  scrollController: controller,
-                ),
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BackpackScreen(userId: user.id),
               ),
             );
           },
@@ -87,7 +79,7 @@ class _BackpackFabState extends State<BackpackFab> {
                             count.toString(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 8,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                             textAlign: TextAlign.center,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/helper/extention.dart';
 
 import '../logic/user/generative_ai_provider.dart';
 import 'ai_chat_app_bar.dart';
@@ -60,6 +61,7 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
         AiChatHeader(
           onBackPressed: () {
             widget.aiProvider.viewHistory();
+            context.pop();
           },
         ),
         Expanded(

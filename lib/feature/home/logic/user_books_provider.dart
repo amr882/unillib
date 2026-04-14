@@ -233,4 +233,26 @@ class UserBooksProvider extends ChangeNotifier {
       return [];
     }
   }
+
+  Future<List<BorrowRecord>> fetchBorrowHistory(String userId) async {
+    if (!await _checkConnectivity()) return [];
+    try {
+      final snap = await _firestore
+          .collection('borrows')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final records = snap.docs
+          .map((doc) => BorrowRecord.fromMap(doc.data()))
+          .where((r) => r.status != BorrowStatus.cancelled)
+          .toList();
+
+      records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return records;
+    } catch (e) {
+      _error = 'Failed to load history: $e';
+      notifyListeners();
+      return [];
+    }
+  }
 }

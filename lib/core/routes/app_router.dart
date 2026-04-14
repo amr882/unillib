@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/feature/home/ui/main_scaffold.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/ai_chat_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/profile_page/profile_screen.dart';
 import 'package:unilib/feature/login/logic/login_controller.dart';
 import 'package:unilib/feature/login/ui/login_screen.dart';
@@ -18,6 +19,11 @@ class AppRouter {
       case Routes.profileScreen:
         return MaterialPageRoute(
           builder: (_) => const ProfileScreen(),
+        );
+
+      case Routes.aiChatScreen:
+        return MaterialPageRoute(
+          builder: (_) => const AiChatScreen(),
         );
 
       case Routes.loginScreen:
