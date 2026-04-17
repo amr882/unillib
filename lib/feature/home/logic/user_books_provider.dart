@@ -244,7 +244,6 @@ class UserBooksProvider extends ChangeNotifier {
 
       final records = snap.docs
           .map((doc) => BorrowRecord.fromMap(doc.data()))
-          .where((r) => r.status != BorrowStatus.cancelled)
           .toList();
 
       records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -253,6 +252,49 @@ class UserBooksProvider extends ChangeNotifier {
       _error = 'Failed to load history: $e';
       notifyListeners();
       return [];
+    }
+  }
+
+  Future<bool> clearBorrowHistory(String userId) async {
+    if (!await _checkConnectivity()) return false;
+    try {
+      final snap = await _firestore
+          .collection('borrows')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      final batch = _firestore.batch();
+      int count = 0;
+
+      for (var doc in snap.docs) {
+        final status = doc.data()['status'];
+        // Only clear records that are finished (returned or cancelled)
+        if (status == 'cancelled' || status == 'returned') {
+          batch.delete(doc.reference);
+          count++;
+        }
+      }
+
+      if (count > 0) {
+        await batch.commit();
+      }
+      return true;
+    } catch (e) {
+      _error = 'Failed to clear history: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> deleteBorrowRecord(String borrowId) async {
+    if (!await _checkConnectivity()) return false;
+    try {
+      await _firestore.collection('borrows').doc(borrowId).delete();
+      return true;
+    } catch (e) {
+      _error = 'Failed to delete record: $e';
+      notifyListeners();
+      return false;
     }
   }
 }

@@ -13,9 +13,7 @@ class AiAssistant extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.backGround,
-      body: SafeArea(
-        child: AiHistoryView(aiProvider: aiProvider),
-      ),
+      body: AiHistoryView(aiProvider: aiProvider),
     );
   }
 }

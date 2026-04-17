@@ -1,97 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
-import 'package:unilib/feature/home/ui/nav_pages/ai_page/ai_assistant.dart';
-import 'package:unilib/feature/home/ui/nav_pages/browse_page/browse_screen.dart';
-import 'package:unilib/feature/home/ui/nav_pages/home_page/home_screen.dart';
-import 'package:unilib/feature/home/ui/nav_pages/profile_page/profile_screen.dart';
-import 'package:unilib/feature/home/ui/widgets/backpack_fab.dart';
-import 'package:provider/provider.dart';
-import 'package:unilib/core/logic/user_provider.dart';
-import 'package:unilib/feature/home/logic/user_books_provider.dart';
+import 'package:unilib/feature/admin/ui/tabs/overview_tab.dart';
+import 'package:unilib/feature/admin/ui/tabs/scanner_tab.dart';
+import 'package:unilib/feature/admin/ui/tabs/borrows_tab.dart';
+import 'package:unilib/feature/admin/ui/tabs/admin_profile_tab.dart';
 
-class MainScaffold extends StatefulWidget {
-  const MainScaffold({super.key});
+class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
 
   @override
-  State<MainScaffold> createState() => _MainScaffoldState();
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
 }
 
-class _MainScaffoldState extends State<MainScaffold> {
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   int _currentIndex = 0;
-  UserProvider? _userProvider;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initData();
-    });
-  }
-
-  void _initData() {
-    _userProvider = context.read<UserProvider>();
-    final booksProvider = context.read<UserBooksProvider>();
-
-    if (_userProvider!.user != null) {
-      booksProvider.syncBorrowCount(_userProvider!.user!.id);
-    } else {
-      // If user isn't loaded yet, we can listen for one update
-      _userProvider!.addListener(_onUserLoaded);
-    }
-  }
-
-  void _onUserLoaded() {
-    if (_userProvider?.user != null) {
-      context.read<UserBooksProvider>().syncBorrowCount(_userProvider!.user!.id);
-      _userProvider!.removeListener(_onUserLoaded);
-    }
-  }
-
-  @override
-  void dispose() {
-    // Use cached reference — safe even after widget deactivation
-    _userProvider?.removeListener(_onUserLoaded);
-    super.dispose();
-  }
 
   final List<_NavItem> _navItems = const [
-    _NavItem(icon: Icons.home_rounded, label: 'Home'),
-    _NavItem(icon: Icons.menu_book_rounded, label: 'Browse'),
-    _NavItem(icon: Icons.auto_awesome_rounded, label: 'UniLib AI'),
+    _NavItem(icon: Icons.dashboard_rounded, label: 'Overview'),
+    _NavItem(icon: Icons.qr_code_scanner_rounded, label: 'Scanner'),
+    _NavItem(icon: Icons.library_books_rounded, label: 'Borrows'),
     _NavItem(icon: Icons.person_rounded, label: 'Profile'),
   ];
 
   Widget _buildScreen(int index) {
     switch (index) {
       case 0:
-        return const HomeScreen();
+        return const OverviewTab();
       case 1:
-        return const BrowseScreen();
+        return const ScannerTab();
       case 2:
-        return const AiAssistant();
+        return const BorrowsTab();
       case 3:
-        return const ProfileScreen();
+        return const AdminProfileTab();
       default:
-        return const HomeScreen();
+        return const OverviewTab();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.navy,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 250),
+      backgroundColor: const Color(0xFF070E18),
+      body: SafeArea(
         child: _buildScreen(_currentIndex),
       ),
-      floatingActionButton: const BackpackFab(),
-      bottomNavigationBar: _AppBottomNavBar(
+      bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         items: _navItems,
-        onTap: (i) {
-          setState(() => _currentIndex = i);
-        },
+        onTap: (i) => setState(() => _currentIndex = i),
       ),
     );
   }
@@ -103,12 +60,12 @@ class _NavItem {
   const _NavItem({required this.icon, required this.label});
 }
 
-class _AppBottomNavBar extends StatelessWidget {
+class _AdminBottomNavBar extends StatelessWidget {
   final int currentIndex;
   final List<_NavItem> items;
   final ValueChanged<int> onTap;
 
-  const _AppBottomNavBar({
+  const _AdminBottomNavBar({
     required this.currentIndex,
     required this.items,
     required this.onTap,
@@ -117,13 +74,18 @@ class _AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.only(top: 15, bottom: 15),
+      padding: const EdgeInsets.only(top: 15, bottom: 15),
       decoration: BoxDecoration(
-        color: AppColors.navyMid,
-        border: Border(top: BorderSide(color: AppColors.navyBorder, width: 1)),
+        color: const Color(0xFF0A1628),
+        border: Border(
+          top: BorderSide(
+            color: AppColors.gold.withOpacity(0.12),
+            width: 1,
+          ),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),

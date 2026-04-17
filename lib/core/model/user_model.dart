@@ -7,6 +7,7 @@ class UserModel {
   final String faculty;
   final String academicYear;
   final String createdAt;
+  final String role;
 
   UserModel({
     required this.id,
@@ -17,7 +18,10 @@ class UserModel {
     required this.faculty,
     required this.academicYear,
     required this.createdAt,
+    this.role = 'student',
   });
+
+  bool get isAdmin => role == 'admin';
 
   String get fullName => '$firstName $lastName'.trim();
 
@@ -31,6 +35,7 @@ class UserModel {
       faculty: map['faculty'] as String? ?? '??',
       academicYear: map['academicYear'] as String? ?? '??',
       createdAt: map['createdAt']?.toString() ?? '??',
+      role: map['role'] as String? ?? 'student',
     );
   }
 
@@ -42,6 +47,7 @@ class UserModel {
     'faculty': faculty,
     'academicYear': academicYear,
     'createdAt': createdAt,
+    'role': role,
   };
 
   UserModel copyWith({
@@ -52,6 +58,7 @@ class UserModel {
     String? faculty,
     String? academicYear,
     String? createdAt,
+    String? role,
   }) {
     return UserModel(
       id: id,
@@ -62,6 +69,7 @@ class UserModel {
       faculty: faculty ?? this.faculty,
       academicYear: academicYear ?? this.academicYear,
       createdAt: createdAt ?? this.createdAt,
+      role: role ?? this.role,
     );
   }
 

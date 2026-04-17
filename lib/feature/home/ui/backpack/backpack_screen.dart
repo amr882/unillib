@@ -33,9 +33,19 @@ class _BackpackScreenState extends State<BackpackScreen> with SingleTickerProvid
     return Scaffold(
       backgroundColor: AppColors.backGround,
       appBar: AppBar(
-        backgroundColor: AppColors.navy,
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: AppColors.backgroundGradient,
+          ),
+        ),
         elevation: 0,
         centerTitle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(13),
+            bottomRight: Radius.circular(13),
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.gold, size: 20),
           onPressed: () => Navigator.pop(context),

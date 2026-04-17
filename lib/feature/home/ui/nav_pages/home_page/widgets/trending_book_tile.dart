@@ -41,7 +41,7 @@ class TrendingBookTile extends StatelessWidget {
         ],
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // Cover
           ClipRRect(

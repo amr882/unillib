@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/helper/extention.dart';
 import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
-import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_app_bar.dart';
 
 class AiHistoryView extends StatelessWidget {
   final GenerativeAiProvider aiProvider;
@@ -21,7 +21,34 @@ class AiHistoryView extends StatelessWidget {
       color: AppColors.backGround,
       child: Column(
         children: [
-          const AiChatHeader(showBackButton: false, isDarkMode: false),
+          // Premium Gradient Header
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: AppColors.backgroundGradient,
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(13),
+                bottomRight: Radius.circular(13),
+              ),
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(5.w, 4.h, 5.w, 3.h),
+                child: Center(
+                  child: Text(
+                    'UniLib AI',
+                    style: TextStyle(
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                      letterSpacing: 0.3,
+                    ),
+                  ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.9, 0.9)),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),

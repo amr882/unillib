@@ -95,17 +95,107 @@ class _ActiveBorrowsViewState extends State<ActiveBorrowsView> {
 
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Cancel Request'),
-        content: Text('Do you want to cancel your request for "${book.title}"?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Yes, Cancel'),
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: AppColors.navyCard,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.navyBorder, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.5),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.cancel_rounded,
+                  color: Colors.redAccent,
+                  size: 32,
+                ),
+              ),
+              SizedBox(height: 2.h),
+              Text(
+                'cancle Borrow',
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 1.h),
+              Text(
+                'You are about to cancle your borrow request for "${book.title}". Do you want to continue?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.textSub,
+                  fontSize: 13.sp,
+                ),
+              ),
+              SizedBox(height: 3.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'No, Keep It',
+                        style: TextStyle(
+                          color: AppColors.textMuted,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 3.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: AppColors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(vertical: 1.5.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Yes, cancle',
+                        style: TextStyle(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )
+            .animate()
+            .scale(duration: 300.ms, curve: Curves.easeOutBack, begin: const Offset(0.8, 0.8))
+            .fadeIn(duration: 200.ms),
       ),
     );
 
@@ -132,31 +222,26 @@ class _ActiveBorrowsViewState extends State<ActiveBorrowsView> {
       return const Center(child: CircularProgressIndicator(color: AppColors.gold));
     }
 
-    if (_items == null || _items!.isEmpty) {
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inventory_2_outlined, size: 64, color: AppColors.navy.withOpacity(0.1)),
-          const SizedBox(height: 16),
-          Text(
-            'Backpack is empty',
-            style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold, color: AppColors.navy),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Borrow some books to see them here!',
-            style: TextStyle(fontSize: 13.sp, color: AppColors.textMuted),
-          ),
-        ],
-      ).animate().fadeIn(duration: 400.ms);
-    }
-
     return ListView.separated(
-      padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 2.h),
-      itemCount: _items!.length,
-      separatorBuilder: (_, _) => SizedBox(height: 2.h),
+      padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 4.h),
+      itemCount: _items!.length + 1,
+      separatorBuilder: (_, index) => index == 0 ? const SizedBox.shrink() : SizedBox(height: 2.h),
       itemBuilder: (context, index) {
-        final item = _items![index];
+        if (index == 0) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 2.h, top: 1.h),
+            child: Text(
+              'Active Borrow',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.navy,
+                letterSpacing: 0.2,
+              ),
+            ),
+          );
+        }
+        final item = _items![index - 1];
         final book = item.book;
         final record = item.record;
         final canCancel = record.canUserCancel;
@@ -167,13 +252,35 @@ class _ActiveBorrowsViewState extends State<ActiveBorrowsView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TrendingBookTile(
-                rank: index + 1,
+                rank: index,
                 book: book,
                 isDark: false,
                 trailingWidget: canCancel
-                    ? IconButton(
-                        icon: const Icon(Icons.cancel_rounded, color: Colors.red),
-                        onPressed: () => _cancelBorrow(context, item, index),
+                    ? SizedBox(
+                        height: 4.5.h,
+                        child: ElevatedButton(
+                          onPressed: () => _cancelBorrow(context, item, index - 1),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.white,
+                            foregroundColor: AppColors.navy,
+                            elevation: 0,
+                            padding: EdgeInsets.symmetric(horizontal: 4.w),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              side: BorderSide(
+                                color: AppColors.navy.withOpacity(0.12),
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'cancle',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       )
                     : const Icon(Icons.lock_outline, color: Colors.grey, size: 20),
               ),

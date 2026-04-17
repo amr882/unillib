@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -52,8 +54,25 @@ class _LoginScreenState extends State<LoginScreen>
 
     bool success = await controller.login(context);
     if (success && mounted) {
+      // Check user role to decide routing
+      String targetRoute = Routes.mainScaffold;
+      try {
+        final uid = FirebaseAuth.instance.currentUser?.uid;
+        if (uid != null) {
+          final doc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(uid)
+              .get();
+          final role = doc.data()?['role'] as String? ?? 'student';
+          if (role == 'admin') {
+            targetRoute = Routes.adminDashboard;
+          }
+        }
+      } catch (_) {}
+
+      if (!mounted) return;
       context.pushNamedAndRemoveUntil(
-        Routes.mainScaffold,
+        targetRoute,
         predicate: (_) => false,
       );
     } else if (mounted) {
