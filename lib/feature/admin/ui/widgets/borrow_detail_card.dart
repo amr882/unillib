@@ -91,21 +91,24 @@ class BorrowDetailCard extends StatelessWidget {
               children: [
                 // Status badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: _statusColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _statusColor.withOpacity(0.3),
-                    ),
+                    border: Border.all(color: _statusColor.withOpacity(0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (_isOverdue) ...[
-                        const Icon(Icons.warning_rounded,
-                            size: 14, color: Color(0xFFEF4444)),
+                        const Icon(
+                          Icons.warning_rounded,
+                          size: 14,
+                          color: Color(0xFFEF4444),
+                        ),
                         const SizedBox(width: 4),
                       ],
                       Text(
@@ -117,14 +120,6 @@ class BorrowDetailCard extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  DateFormat('MMM d, yyyy • HH:mm').format(borrow.createdAt),
-                  style: GoogleFonts.dmSans(
-                    fontSize: 11,
-                    color: Colors.white38,
                   ),
                 ),
               ],
@@ -142,34 +137,44 @@ class BorrowDetailCard extends StatelessWidget {
                 // Cover
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),
-                  child: borrow.bookCoverUrl.isNotEmpty &&
+                  child:
+                      borrow.bookCoverUrl.isNotEmpty &&
                           borrow.bookCoverUrl != '??'
                       ? CachedNetworkImage(
                           imageUrl: borrow.bookCoverUrl,
                           width: 52,
                           height: 72,
                           fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(
+                          placeholder: (_, _) => Container(
                             width: 52,
                             height: 72,
                             color: AppColors.navyCard,
-                            child: const Icon(Icons.menu_book_rounded,
-                                color: Colors.white24, size: 20),
+                            child: const Icon(
+                              Icons.menu_book_rounded,
+                              color: Colors.white24,
+                              size: 20,
+                            ),
                           ),
-                          errorWidget: (_, __, ___) => Container(
+                          errorWidget: (_, _, _) => Container(
                             width: 52,
                             height: 72,
                             color: AppColors.navyCard,
-                            child: const Icon(Icons.menu_book_rounded,
-                                color: Colors.white24, size: 20),
+                            child: const Icon(
+                              Icons.menu_book_rounded,
+                              color: Colors.white24,
+                              size: 20,
+                            ),
                           ),
                         )
                       : Container(
                           width: 52,
                           height: 72,
                           color: AppColors.navyCard,
-                          child: const Icon(Icons.menu_book_rounded,
-                              color: Colors.white24, size: 20),
+                          child: const Icon(
+                            Icons.menu_book_rounded,
+                            color: Colors.white24,
+                            size: 20,
+                          ),
                         ),
                 ),
                 const SizedBox(width: 14),
@@ -199,8 +204,9 @@ class BorrowDetailCard extends StatelessWidget {
                       if (_isOverdue && borrow.pickupConfirmedAt != null) ...[
                         const SizedBox(height: 6),
                         _OverdueBanner(
-                          deadline: borrow.pickupConfirmedAt!
-                              .add(const Duration(days: 14)),
+                          deadline: borrow.pickupConfirmedAt!.add(
+                            const Duration(days: 14),
+                          ),
                         ),
                       ],
                     ],
@@ -270,8 +276,9 @@ class BorrowDetailCard extends StatelessWidget {
                   _DetailRow(
                     icon: Icons.check_circle_outline,
                     label: 'Picked Up',
-                    value: DateFormat('MMM d, yyyy • HH:mm')
-                        .format(borrow.pickupConfirmedAt!),
+                    value: DateFormat(
+                      'MMM d, yyyy • HH:mm',
+                    ).format(borrow.pickupConfirmedAt!),
                   ),
                 ],
                 if (borrow.returnConfirmedAt != null) ...[
@@ -279,8 +286,9 @@ class BorrowDetailCard extends StatelessWidget {
                   _DetailRow(
                     icon: Icons.assignment_return_outlined,
                     label: 'Returned',
-                    value: DateFormat('MMM d, yyyy • HH:mm')
-                        .format(borrow.returnConfirmedAt!),
+                    value: DateFormat(
+                      'MMM d, yyyy • HH:mm',
+                    ).format(borrow.returnConfirmedAt!),
                   ),
                 ],
               ],
@@ -307,7 +315,9 @@ class BorrowDetailCard extends StatelessWidget {
                       ),
                     ),
                   if (onReject != null &&
-                      (onConfirmPickup != null || onConfirmReturn != null || onScanQR != null))
+                      (onConfirmPickup != null ||
+                          onConfirmReturn != null ||
+                          onScanQR != null))
                     const SizedBox(width: 12),
                   if (onScanQR != null)
                     Expanded(
@@ -410,8 +420,11 @@ class _OverdueBanner extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              size: 14, color: Color(0xFFEF4444)),
+          const Icon(
+            Icons.warning_amber_rounded,
+            size: 14,
+            color: Color(0xFFEF4444),
+          ),
           const SizedBox(width: 4),
           Text(
             'Overdue by $overdueDays day${overdueDays != 1 ? 's' : ''}',
@@ -462,9 +475,11 @@ class _ActionButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon,
-                  size: 18,
-                  color: onTap != null ? color : color.withOpacity(0.4)),
+              Icon(
+                icon,
+                size: 18,
+                color: onTap != null ? color : color.withOpacity(0.4),
+              ),
               const SizedBox(width: 8),
               Text(
                 label,

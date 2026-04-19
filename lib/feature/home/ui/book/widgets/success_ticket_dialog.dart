@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -22,13 +24,38 @@ class _SuccessTicketDialogState extends State<SuccessTicketDialog> {
   double _rotationX = 0;
   double _rotationY = 0;
   late final String _qrData;
+  StreamSubscription<DocumentSnapshot>? _statusSubscription;
+  String? _initialStatus;
 
   @override
   void initState() {
     super.initState();
     _qrData = 'UNILIB-BORROW:${widget.borrowId}';
 
+    // Listen to borrow record status changes to auto-pop dialog when scanned by admin
+    _statusSubscription = FirebaseFirestore.instance
+        .collection('borrows')
+        .doc(widget.borrowId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists && mounted) {
+        final data = snapshot.data();
+        final status = data?['status'] as String?;
 
+        if (_initialStatus == null) {
+          _initialStatus = status;
+        } else if (status != _initialStatus) {
+          // Status changed! Close the dialog as it's been processed by admin
+          Navigator.of(context).pop();
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _statusSubscription?.cancel();
+    super.dispose();
   }
 
   @override

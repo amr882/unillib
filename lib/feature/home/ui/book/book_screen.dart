@@ -29,15 +29,15 @@ class BookScreen extends StatefulWidget {
 
 class _BookScreenState extends State<BookScreen> {
   bool _isLoading = false;
-  BorrowRecord? _userBorrowRecord;
   Timer? _countdownTimer;
 
   late Future<List<Book>> _relatedFuture;
 
+
   @override
   void initState() {
     super.initState();
-    _fetchBorrowStatus();
+
 
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
@@ -60,22 +60,7 @@ class _BookScreenState extends State<BookScreen> {
     super.dispose();
   }
 
-  Future<void> _fetchBorrowStatus() async {
-    final userId = context.read<UserProvider>().user?.id ?? '';
-    if (userId.isEmpty) return;
-    
-    final records = await context.read<UserBooksProvider>().fetchUserBorrows(userId);
-    
-    if (mounted) {
-      setState(() {
-        try {
-          _userBorrowRecord = records.firstWhere((r) => r.bookId == widget.book.id);
-        } catch (_) {
-          _userBorrowRecord = null;
-        }
-      });
-    }
-  }
+
 
   Future<void> _handleBorrow() async {
     final userId = context.read<UserProvider>().user?.id ?? '';
@@ -83,7 +68,8 @@ class _BookScreenState extends State<BookScreen> {
 
     setState(() => _isLoading = true);
 
-    final success = await context.read<UserBooksProvider>().borrowBook(
+    final userBooksProvider = context.read<UserBooksProvider>();
+    final success = await userBooksProvider.borrowBook(
       bookId: widget.book.id,
       userId: userId,
     );
@@ -95,19 +81,21 @@ class _BookScreenState extends State<BookScreen> {
         body: 'You have successfully requested "${widget.book.title}". Pick it up within 48h!',
       );
       
-      // Re-fetch to get the new borrowRecord
-      await _fetchBorrowStatus();
+      // Show ticket dialog - we can fetch it once here or rely on the fact it was just created
+      final records = await userBooksProvider.fetchUserBorrows(userId);
+      final newRecord = records.firstWhere((r) => r.bookId == widget.book.id);
       
-      if (mounted && _userBorrowRecord != null) {
+      if (mounted) {
         showDialog(
           context: context,
           barrierColor: Colors.black87,
           builder: (_) => SuccessTicketDialog(
             book: widget.book,
-            borrowId: _userBorrowRecord!.borrowId,
+            borrowId: newRecord.borrowId,
           ),
         );
       }
+
 
       setState(() {
         _isLoading = false;
@@ -119,7 +107,7 @@ class _BookScreenState extends State<BookScreen> {
           SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text(
-              context.read<UserBooksProvider>().error ?? 'Something went wrong.',
+              userBooksProvider.error ?? 'Something went wrong.',
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -201,21 +189,33 @@ class _BookScreenState extends State<BookScreen> {
                     SizedBox(height: 1.h),
                     LocationCard(book: currentBook),
                     SizedBox(height: 4.h),
-                    if (_userBorrowRecord != null) ...[
-                      StatusCountdown(record: _userBorrowRecord!),
-                      SizedBox(height: 1.5.h),
-                    ],
-                    ActionButtons(
-                          book: currentBook,
-                          isLoading: _isLoading,
-                          userBorrowRecord: _userBorrowRecord,
-                          studentId: userId,
-                          onBorrowTap: _handleBorrow,
-                          onRefreshRequested: _fetchBorrowStatus,
-                        )
-                        .animate()
-                        .fadeIn(delay: 500.ms)
-                        .scale(begin: const Offset(0.95, 0.95)),
+                    
+                    StreamBuilder<BorrowRecord?>(
+                      stream: context.read<UserBooksProvider>().getBorrowRecordForBookStream(userId, currentBook.id),
+                      builder: (context, snapshot) {
+                        final record = snapshot.data;
+                        
+                        return Column(
+                          children: [
+                            if (record != null) ...[
+                              StatusCountdown(record: record),
+                              SizedBox(height: 1.5.h),
+                            ],
+                            ActionButtons(
+                              book: currentBook,
+                              isLoading: _isLoading,
+                              userBorrowRecord: record,
+                              studentId: userId,
+                              onBorrowTap: _handleBorrow,
+                              onRefreshRequested: () {}, // No longer needed with streams
+                            )
+                            .animate()
+                            .fadeIn(delay: 500.ms)
+                            .scale(begin: const Offset(0.95, 0.95)),
+                          ],
+                        );
+                      },
+                    ),
                     SizedBox(height: 4.h),
 
                     _SectionTitle(

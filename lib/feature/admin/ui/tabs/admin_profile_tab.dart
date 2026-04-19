@@ -79,8 +79,10 @@ class AdminProfileTab extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.gold.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(12),
@@ -103,16 +105,6 @@ class AdminProfileTab extends StatelessWidget {
                     label: 'Email',
                     value: user.email,
                   ),
-                  _InfoTile(
-                    icon: Icons.badge_outlined,
-                    label: 'ID',
-                    value: user.studentId,
-                  ),
-                  _InfoTile(
-                    icon: Icons.school_outlined,
-                    label: 'Faculty',
-                    value: user.faculty,
-                  ),
                 ],
               ],
             ),
@@ -120,7 +112,7 @@ class AdminProfileTab extends StatelessWidget {
 
           const SizedBox(height: 30),
 
-          // ── Sign out button ────────────────────────────────
+          // ── Sign out button
           GestureDetector(
             onTap: () => _showSignOutDialog(context),
             child: Container(
@@ -136,8 +128,11 @@ class AdminProfileTab extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.logout_rounded,
-                      color: Color(0xFFEF4444), size: 20),
+                  const Icon(
+                    Icons.logout_rounded,
+                    color: Color(0xFFEF4444),
+                    size: 20,
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     'Sign Out',
@@ -173,8 +168,11 @@ class AdminProfileTab extends StatelessWidget {
                   color: const Color(0xFFEF4444).withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.logout_rounded,
-                    color: Color(0xFFEF4444), size: 28),
+                child: const Icon(
+                  Icons.logout_rounded,
+                  color: Color(0xFFEF4444),
+                  size: 28,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -189,10 +187,7 @@ class AdminProfileTab extends StatelessWidget {
               Text(
                 'Are you sure you want to sign out of the admin dashboard?',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.dmSans(
-                  fontSize: 14,
-                  color: Colors.white54,
-                ),
+                style: GoogleFonts.dmSans(fontSize: 14, color: Colors.white54),
               ),
               const SizedBox(height: 24),
               Row(

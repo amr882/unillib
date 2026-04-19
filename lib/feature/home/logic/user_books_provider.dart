@@ -18,9 +18,11 @@ class UserBooksProvider extends ChangeNotifier {
   UserBooksProvider(this._catalogProvider);
 
   Future<bool> _checkConnectivity() async {
-    final List<ConnectivityResult> results = await Connectivity().checkConnectivity();
+    final List<ConnectivityResult> results = await Connectivity()
+        .checkConnectivity();
     if (results.contains(ConnectivityResult.none)) {
-      _error = 'No internet connection. Please check your network and try again.';
+      _error =
+          'No internet connection. Please check your network and try again.';
       notifyListeners();
       return false;
     }
@@ -44,13 +46,17 @@ class UserBooksProvider extends ChangeNotifier {
         final bookCoverUrl = snap.data()?['cover_url'] ?? '';
 
         final available = (snap.data()?['available_copies'] ?? 0) as int;
-        final borrowedBy = List<dynamic>.from(snap.data()?['borrowed_by'] ?? []);
-        final reservations = Map<String, dynamic>.from(snap.data()?['reservations'] ?? {});
+        final borrowedBy = List<dynamic>.from(
+          snap.data()?['borrowed_by'] ?? [],
+        );
+        final reservations = Map<String, dynamic>.from(
+          snap.data()?['reservations'] ?? {},
+        );
 
         if (available <= 0) throw Exception('no_copies');
         if (borrowedBy.contains(userId)) throw Exception('already_borrowed');
 
-        // Enforce borrow limit of 3 books per user 
+        // Enforce borrow limit of 3 books per user
         // Note: in transaction this is best-effort unless we use a counters doc or specific user collection limits
         QuerySnapshot activeBorrows = await _firestore
             .collection('borrows')
@@ -65,8 +71,8 @@ class UserBooksProvider extends ChangeNotifier {
 
         final now = DateTime.now();
         final expiry = Timestamp.fromDate(now.add(const Duration(hours: 48)));
-        
-        reservations[userId] = expiry; 
+
+        reservations[userId] = expiry;
         reservations['${userId}_borrowId'] = borrowId; // link them
 
         transaction.update(docRef, {
@@ -121,31 +127,29 @@ class UserBooksProvider extends ChangeNotifier {
       await _firestore.runTransaction((transaction) async {
         final bookRef = _firestore.collection('books').doc(bookId);
         final borrowRef = _firestore.collection('borrows').doc(borrowId);
-        
+
         final borrowDoc = await transaction.get(borrowRef);
         final bookDoc = await transaction.get(bookRef);
-        
+
         if (borrowDoc.exists) {
           final record = BorrowRecord.fromMap(borrowDoc.data()!);
           if (record.status != BorrowStatus.pendingPickup) {
             throw Exception('not_cancellable');
           }
-          
-          transaction.update(borrowRef, {
-            'status': 'cancelled'
-          });
+
+          transaction.update(borrowRef, {'status': 'cancelled'});
         }
-        
+
         if (bookDoc.exists) {
           final bookData = bookDoc.data()!;
           int copies = bookData['available_copies'] ?? 0;
           List borrowedBy = List.from(bookData['borrowed_by'] ?? []);
           Map reservations = Map.from(bookData['reservations'] ?? {});
-          
+
           borrowedBy.remove(userId);
           reservations.remove(userId);
           reservations.remove('${userId}_borrowId');
-          
+
           transaction.update(bookRef, {
             'available_copies': copies + 1,
             'is_available': true,
@@ -167,7 +171,7 @@ class UserBooksProvider extends ChangeNotifier {
       return false;
     }
   }
-  
+
   // Legacy method for transition compatibility - if it exists elsewhere, it routes to cancel
   Future<bool> returnBook({
     required String bookId,
@@ -187,10 +191,15 @@ class UserBooksProvider extends ChangeNotifier {
           .where('userId', isEqualTo: userId)
           .get();
 
-      final records = snap.docs.map((doc) => BorrowRecord.fromMap(doc.data()))
-          .where((r) => r.status == BorrowStatus.pendingPickup || r.status == BorrowStatus.activeBorrow)
+      final records = snap.docs
+          .map((doc) => BorrowRecord.fromMap(doc.data()))
+          .where(
+            (r) =>
+                r.status == BorrowStatus.pendingPickup ||
+                r.status == BorrowStatus.activeBorrow,
+          )
           .toList();
-      
+
       _activeBorrowCount = records.length;
       records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       notifyListeners();
@@ -210,7 +219,7 @@ class UserBooksProvider extends ChangeNotifier {
           .where('userId', isEqualTo: userId)
           .where('status', whereIn: ['pending_pickup', 'active_borrow'])
           .get();
-      
+
       _activeBorrowCount = snap.docs.length;
       notifyListeners();
     } catch (e) {
@@ -218,7 +227,6 @@ class UserBooksProvider extends ChangeNotifier {
     }
   }
 
-  // Fallback for widgets expecting books
   Future<List<Book>> fetchUserBorrowedBooks(String userId) async {
     try {
       final snap = await _firestore
@@ -296,5 +304,41 @@ class UserBooksProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // ── Real-time Streams
+  Stream<List<BorrowRecord>> getBorrowRecordsStream(String userId) {
+    return _firestore
+        .collection('borrows')
+        .where('userId', isEqualTo: userId)
+        .where('status', whereIn: ['pending_pickup', 'active_borrow'])
+        .snapshots()
+        .map((snapshot) {
+          final records = snapshot.docs
+              .map((doc) => BorrowRecord.fromMap(doc.data()))
+              .toList();
+          records.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+          _activeBorrowCount = records.length;
+          return records;
+        });
+  }
+
+  // Returns a stream of a specific borrow record for a user and book.
+  Stream<BorrowRecord?> getBorrowRecordForBookStream(
+    String userId,
+    String bookId,
+  ) {
+    return _firestore
+        .collection('borrows')
+        .where('userId', isEqualTo: userId)
+        .where('bookId', isEqualTo: bookId)
+        .where('status', whereIn: ['pending_pickup', 'active_borrow'])
+        .snapshots()
+        .map((snapshot) {
+          if (snapshot.docs.isEmpty) return null;
+
+          return BorrowRecord.fromMap(snapshot.docs.first.data());
+        });
   }
 }

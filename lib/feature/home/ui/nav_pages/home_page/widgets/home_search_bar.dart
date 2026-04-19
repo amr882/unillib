@@ -26,7 +26,7 @@ class HomeSearchBar extends StatelessWidget {
               child: TextField(
                 style: AppTextStyles.inputText,
                 decoration: InputDecoration(
-                  hintText: 'Search books, journals, articles...',
+                  hintText: 'Search books...',
                   hintStyle: AppTextStyles.hintText,
                   border: InputBorder.none,
                   isDense: true,
