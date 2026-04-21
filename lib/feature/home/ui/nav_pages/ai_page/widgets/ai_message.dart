@@ -70,17 +70,31 @@ class _AiMessageState extends State<AiMessage> {
     _displayedText = "";
     int index = 0;
     
-    _typingTimer = Timer.periodic(const Duration(milliseconds: 15), (timer) {
+    final int maxAnimationMs = 2000;
+    final int tickMs = 15;
+    
+    final chars = _cleanMsg.characters;
+    final int totalLength = chars.length;
+    
+    int charsPerTick = 1;
+    if (totalLength * tickMs > maxAnimationMs) {
+      charsPerTick = (totalLength * tickMs / maxAnimationMs).ceil();
+    }
+    
+    _typingTimer = Timer.periodic(Duration(milliseconds: tickMs), (timer) {
       if (!mounted) {
         timer.cancel();
         return;
       }
 
-      if (index < _cleanMsg.length) {
+      if (index < totalLength) {
+        int endIndex = index + charsPerTick;
+        if (endIndex > totalLength) endIndex = totalLength;
+        
         setState(() {
-          _displayedText += _cleanMsg[index];
+          _displayedText = chars.take(endIndex).toString();
         });
-        index++;
+        index = endIndex;
       } else {
         timer.cancel();
       }

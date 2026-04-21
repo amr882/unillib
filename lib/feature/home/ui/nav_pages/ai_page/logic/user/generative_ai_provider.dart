@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
+import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/model/chat_session_model.dart';
+import 'package:unilib/core/model/user_model.dart';
 import '../general/ai_core_service.dart';
 import 'chat_persistence_service.dart';
 
@@ -67,7 +71,15 @@ class GenerativeAiProvider extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
     try {
-      _model = await _aiCore.initModel();
+      final uid = _auth.currentUser?.uid;
+      UserModel? appUser;
+      if (uid != null) {
+        final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        if (doc.exists && doc.data() != null) {
+          appUser = UserModel.fromMap(doc.data()!, uid);
+        }
+      }
+      _model = await _aiCore.initModel(user: appUser);
       await loadChatHistory();
       _isInitialized = true;
       _errorMessage = null;
@@ -145,6 +157,35 @@ class GenerativeAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void startBookContextChat(Book book) {
+    _isViewingHistory = false;
+    _activeChatId = null;
+    _sessionStartTime = DateTime.now();
+    _tempNewChatMessages = [
+      Message(
+        text: "I see you are interested in '${book.title}'. I have loaded its details. What would you like to know or discuss about it?",
+        isUser: false,
+        timestamp: DateTime.now(),
+      ),
+    ];
+    if (_isInitialized) {
+      final userMessage = Content.text(
+        "I am looking at this book. Please keep it in your context for our discussion:\n"
+        "Title: ${book.title}\n"
+        "Author: ${book.author}\n"
+        "Category: ${book.category}\n"
+        "Description: ${book.description}\n"
+        "ISBN: ${book.isbn}\n"
+        "Tags: ${book.tags.join(', ')}"
+      );
+      final modelResponse = Content.model([
+        TextPart("Understood. I have securely kept '${book.title}' in my context. I am ready to answer any questions, summarize its concepts, or help you understand how it relates to your studies.")
+      ]);
+      _chat = _aiCore.startChat(_model, history: [userMessage, modelResponse]);
+    }
+    notifyListeners();
+  }
+
   void resumeChat(String chatId) {
     try {
       final session = _chatHistory.firstWhere((s) => s.id == chatId);
@@ -175,19 +216,37 @@ class GenerativeAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+  Future<void> sendMessage(String text, {Uint8List? imageBytes}) async {
+    if (text.trim().isEmpty && imageBytes == null) return;
     _isRequestCancelled = false;
 
     if (!await _ensureChatReady()) return;
 
     await _processFlow(
       userText: text,
+      imageBytes: imageBytes,
       action: () async {
         final context = await _aiCore.getRelevantBooksContext(text);
-        final fullPrompt = "Library Context:\n$context\n\nUser Question: $text";
-        final response = await _chat?.sendMessage(Content.text(fullPrompt));
-        return response?.text;
+        final String fullPrompt;
+        if (context != null && context.isNotEmpty) {
+          fullPrompt = "$text\n\n---\n[SYSTEM NOTE: Automated Catalog Search Results]\n"
+              "$context\n"
+              "(Instruction: The above search results are provided automatically. They indicate which books are physically available in the library. If the user is asking a follow-up question about a book already discussed in this conversation, you MUST ignore these search results and continue discussing the book from the conversation history. Answer the user's message above.)\n---\n";
+        } else {
+          fullPrompt = text;
+        }
+        
+        if (imageBytes != null) {
+          final content = Content.multi([
+            TextPart(fullPrompt),
+            DataPart('image/jpeg', imageBytes),
+          ]);
+          final response = await _chat?.sendMessage(content);
+          return response?.text;
+        } else {
+          final response = await _chat?.sendMessage(Content.text(fullPrompt));
+          return response?.text;
+        }
       },
     );
   }
@@ -204,6 +263,7 @@ class GenerativeAiProvider extends ChangeNotifier {
   Future<void> _processFlow({
     required String userText,
     required Future<String?> Function() action,
+    Uint8List? imageBytes,
     String? customTitle,
   }) async {
     if (_chat == null) {
@@ -213,9 +273,10 @@ class GenerativeAiProvider extends ChangeNotifier {
     }
 
     final userMsg = Message(
-      text: userText,
+      text: userText.isEmpty && imageBytes != null ? "Uploaded an image" : userText,
       isUser: true,
       timestamp: DateTime.now(),
+      tempImage: imageBytes,
     );
     _addMessageToActiveSession(userMsg);
 

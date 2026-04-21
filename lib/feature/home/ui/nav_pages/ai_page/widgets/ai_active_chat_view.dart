@@ -1,5 +1,8 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:sizer/sizer.dart';
+import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/helper/extention.dart';
 
 import '../logic/user/generative_ai_provider.dart';
@@ -20,6 +23,8 @@ class AiActiveChatView extends StatefulWidget {
 
 class _AiActiveChatViewState extends State<AiActiveChatView> {
   final TextEditingController _controller = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _selectedImage;
   DateTime? _lastAnimatedTimestamp;
   String? _lastSessionId;
 
@@ -38,10 +43,61 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.navy,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: AppColors.gold),
+                title: const Text('Take a photo', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _getImage(ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: AppColors.gold),
+                title: const Text('Choose from gallery', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  _getImage(ImageSource.gallery);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _getImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source, imageQuality: 70);
+      if (image != null) {
+        final bytes = await image.readAsBytes();
+        setState(() {
+          _selectedImage = bytes;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
   void _sendMessage() {
-    if (_controller.text.trim().isEmpty) return;
-    widget.aiProvider.sendMessage(_controller.text);
+    if (_controller.text.trim().isEmpty && _selectedImage == null) return;
+    widget.aiProvider.sendMessage(_controller.text, imageBytes: _selectedImage);
     _controller.clear();
+    setState(() {
+      _selectedImage = null;
+    });
   }
 
   String _formatTime(DateTime time) {
@@ -106,6 +162,7 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
                       ? UserMessage(
                           msg: msg.text,
                           timeText: _formatTime(msg.timestamp),
+                          tempImage: msg.tempImage,
                         )
                       : AiMessage(
                           msg: msg.text,
@@ -128,6 +185,9 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
         AiChatInputField(
           controller: _controller,
           onSend: _sendMessage,
+          onAttachImage: _pickImage,
+          onRemoveImage: () => setState(() => _selectedImage = null),
+          selectedImage: _selectedImage,
           onStop: () {
             widget.aiProvider.stopGenerating();
           },

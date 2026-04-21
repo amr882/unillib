@@ -1,14 +1,17 @@
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Message {
   final String text;
   final bool isUser;
   final DateTime timestamp;
+  final Uint8List? tempImage;
 
   Message({
     required this.text,
     required this.isUser,
     required this.timestamp,
+    this.tempImage,
   });
 
   Map<String, dynamic> toMap() {

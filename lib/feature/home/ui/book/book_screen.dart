@@ -8,8 +8,11 @@ import 'package:unilib/core/model/book_model.dart';
 import 'package:unilib/core/model/borrow_model.dart';
 import 'package:unilib/core/service/notification_service.dart';
 import 'package:unilib/core/theme/app_colors.dart';
+import 'package:unilib/core/helper/extention.dart';
+import 'package:unilib/core/routes/routes.dart';
 import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
 import 'package:unilib/feature/home/ui/book/widgets/action_buttons.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/widgets/small_book_card.dart';
 import 'package:unilib/feature/home/ui/book/widgets/details.dart';
@@ -163,10 +166,44 @@ class _BookScreenState extends State<BookScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _SectionTitle(title: 'About this Resource')
-                        .animate()
-                        .fadeIn(delay: 200.ms)
-                        .slideY(begin: 0.1, end: 0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _SectionTitle(title: 'About this Resource')
+                            .animate()
+                            .fadeIn(delay: 200.ms)
+                            .slideY(begin: 0.1, end: 0),
+                        
+                        GestureDetector(
+                          onTap: () {
+                            context.read<GenerativeAiProvider>().startBookContextChat(currentBook);
+                            context.pushNamed(Routes.aiChatScreen);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.gold.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.auto_awesome, color: AppColors.gold, size: 16),
+                                SizedBox(width: 4),
+                                Text(
+                                  "Ask AI",
+                                  style: TextStyle(
+                                    color: AppColors.gold,
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ).animate().fadeIn(delay: 300.ms),
+                      ],
+                    ),
                     SizedBox(height: 1.h),
                     Text(
                       currentBook.description,

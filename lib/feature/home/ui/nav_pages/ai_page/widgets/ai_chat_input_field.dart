@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
@@ -7,11 +8,17 @@ class AiChatInputField extends StatelessWidget {
   final VoidCallback onSend;
   final VoidCallback? onStop;
   final bool isLoading;
+  final Uint8List? selectedImage;
+  final VoidCallback onAttachImage;
+  final VoidCallback onRemoveImage;
 
   const AiChatInputField({
     super.key,
     required this.controller,
     required this.onSend,
+    required this.onAttachImage,
+    required this.onRemoveImage,
+    this.selectedImage,
     this.onStop,
     this.isLoading = false,
   });
@@ -29,7 +36,24 @@ class AiChatInputField extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // Text field
+          // Camera button
+          GestureDetector(
+            onTap: onAttachImage,
+            child: Container(
+              width: 12.w,
+              height: 12.w,
+              margin: EdgeInsets.only(bottom: 0.5.h),
+              decoration: BoxDecoration(
+                color: AppColors.navy900.withOpacity(0.5),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.gold100.withOpacity(0.3)),
+              ),
+              child: Icon(Icons.camera_alt_rounded, color: AppColors.gold100, size: 20.sp),
+            ),
+          ),
+          SizedBox(width: 2.w),
+
+          // Text field and Optional Image Thumbnail
           Expanded(
             child: ValueListenableBuilder(
               valueListenable: controller,
@@ -44,33 +68,63 @@ class AiChatInputField extends StatelessWidget {
                       width: 0.5,
                     ),
                   ),
-                  child: TextField(
-                    cursorColor: AppColors.white,
-                    controller: controller,
-                    onSubmitted: (_) => isLoading ? onStop?.call() : onSend(),
-                    style: TextStyle(color: AppColors.textLight, fontSize: 16.sp),
-                    maxLines: 4,
-                    minLines: 1,
-                    textAlign: TextAlign.start,
-                    textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-                    decoration: InputDecoration(
-                      hintText: 'Ask UniLib AI...',
-                      hintStyle: TextStyle(
-                        color: AppColors.gold100.withOpacity(0.5),
-                        fontSize: 16.sp,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (selectedImage != null)
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.memory(
+                                  selectedImage!,
+                                  height: 60,
+                                  width: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: -5,
+                                right: -5,
+                                child: IconButton(
+                                  icon: const Icon(Icons.cancel, color: Colors.white, size: 20),
+                                  onPressed: onRemoveImage,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      TextField(
+                        cursorColor: AppColors.white,
+                        controller: controller,
+                        onSubmitted: (_) => isLoading ? onStop?.call() : onSend(),
+                        style: TextStyle(color: AppColors.textLight, fontSize: 16.sp),
+                        maxLines: 4,
+                        minLines: 1,
+                        textAlign: TextAlign.start,
+                        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                        decoration: InputDecoration(
+                          hintText: 'Ask UniLib AI...',
+                          hintStyle: TextStyle(
+                            color: AppColors.gold100.withOpacity(0.5),
+                            fontSize: 16.sp,
+                          ),
+                          border: OutlineInputBorder(borderSide: BorderSide.none),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            vertical: 1.2.h,
+                            horizontal: 1.2.w,
+                          ),
+                        ),
                       ),
-                      border: OutlineInputBorder(borderSide: BorderSide.none),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(
-                        vertical: 1.2.h,
-                        horizontal: 1.2.w,
-                      ),
-                    ),
+                    ],
                   ),
                 );
               },
