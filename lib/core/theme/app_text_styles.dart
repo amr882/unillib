@@ -54,7 +54,7 @@ class AppTextStyles {
   static final TextStyle hintText = GoogleFonts.dmSans(
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.textMuted,
+    color: AppColors.textSub,
   );
 
   // ── Button ────────────────────────────────────────────────

@@ -9,8 +9,8 @@ class UserMessage extends StatelessWidget {
   final Uint8List? tempImage;
 
   const UserMessage({
-    super.key, 
-    required this.msg, 
+    super.key,
+    required this.msg,
     this.timeText = "9:34 AM",
     this.tempImage,
   });
@@ -70,7 +70,10 @@ class UserMessage extends StatelessWidget {
                         Text(
                           msg,
                           textAlign: TextAlign.start,
-                          textDirection: msg.trim().startsWith(RegExp(r'[\u0600-\u06FF]')) ? TextDirection.rtl : TextDirection.ltr,
+                          textDirection:
+                              msg.trim().startsWith(RegExp(r'[\u0600-\u06FF]'))
+                              ? TextDirection.rtl
+                              : TextDirection.ltr,
                           style: TextStyle(
                             color: AppColors.navy900,
                             fontSize: 16.sp,

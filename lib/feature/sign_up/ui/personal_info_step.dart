@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
+import 'package:unilib/core/theme/app_colors.dart';
+import 'package:unilib/feature/login/ui/widgets/app_dropdown_field.dart';
 import 'package:unilib/feature/login/ui/widgets/app_input_field.dart';
 import 'package:unilib/feature/login/ui/widgets/primary_button.dart';
 import 'package:unilib/feature/sign_up/logic/signup_controller.dart';
@@ -64,11 +66,26 @@ class PersonalInfoStep extends StatelessWidget {
           SizedBox(height: 2.h),
 
           // Faculty
-          AppInputField(
+          AppDropdownField<String>(
             label: 'Faculty / Department',
-            hint: 'e.g. Engineering Science...',
+            hint: 'Select your faculty...',
             prefixIcon: Icons.school_outlined,
-            controller: ctrl.facultyCtrl,
+            value: ctrl.selectedFaculty,
+            items: SignupController.faculties
+                .map(
+                  (f) => DropdownMenuItem(
+                    value: f,
+                    child: Text(
+                      f,
+                      style: AppTextStyles.inputText.copyWith(
+                        color: AppColors.white,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: ctrl.setFaculty,
             validator: ctrl.validateFaculty,
           ),
           SizedBox(height: 2.h),

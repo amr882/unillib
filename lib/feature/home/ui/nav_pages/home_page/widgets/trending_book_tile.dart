@@ -29,12 +29,16 @@ class TrendingBookTile extends StatelessWidget {
         color: backgroundColor ?? (isDark ? AppColors.navyCard : Colors.white),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: isDark ? AppColors.navyBorder.withOpacity(0.5) : AppColors.navy.withOpacity(0.08),
+          color: isDark
+              ? AppColors.navyBorder.withOpacity(0.5)
+              : AppColors.navy.withOpacity(0.08),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark ? Colors.black.withOpacity(0.2) : Colors.black.withOpacity(0.06),
+            color: isDark
+                ? Colors.black.withOpacity(0.2)
+                : Colors.black.withOpacity(0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -167,7 +171,9 @@ class TrendingBookTile extends StatelessWidget {
     }
 
     if (book.tags.isNotEmpty) {
-      chips.add(_chip(book.tags.first, isDark ? AppColors.textLight : AppColors.navy));
+      chips.add(
+        _chip(book.tags.first, isDark ? AppColors.textLight : AppColors.navy),
+      );
     } else if (book.faculty != '??' && book.category != book.faculty) {
       final label = book.facultySlug != '??' ? book.facultySlug : book.faculty;
       chips.add(_chip(label, isDark ? AppColors.textLight : AppColors.navy));

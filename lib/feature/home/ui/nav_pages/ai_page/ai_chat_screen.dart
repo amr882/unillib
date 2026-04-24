@@ -38,9 +38,7 @@ class AiChatScreen extends StatelessWidget {
             ),
           ),
 
-          SafeArea(
-            child: AiActiveChatView(aiProvider: aiProvider),
-          ),
+          SafeArea(child: AiActiveChatView(aiProvider: aiProvider)),
         ],
       ),
     );

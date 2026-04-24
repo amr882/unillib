@@ -42,9 +42,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF070E18),
-      body: SafeArea(
-        child: _buildScreen(_currentIndex),
-      ),
+      body: SafeArea(child: _buildScreen(_currentIndex)),
       bottomNavigationBar: _AdminBottomNavBar(
         currentIndex: _currentIndex,
         items: _navItems,
@@ -78,10 +76,7 @@ class _AdminBottomNavBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF0A1628),
         border: Border(
-          top: BorderSide(
-            color: AppColors.gold.withOpacity(0.12),
-            width: 1,
-          ),
+          top: BorderSide(color: AppColors.gold.withOpacity(0.12), width: 1),
         ),
         boxShadow: [
           BoxShadow(

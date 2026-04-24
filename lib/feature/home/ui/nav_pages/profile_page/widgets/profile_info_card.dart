@@ -8,11 +8,7 @@ class ProfileInfoCard extends StatelessWidget {
   final UserModel? user;
   final bool isLoading;
 
-  const ProfileInfoCard({
-    super.key,
-    this.user,
-    this.isLoading = false,
-  });
+  const ProfileInfoCard({super.key, this.user, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +33,11 @@ class ProfileInfoCard extends StatelessWidget {
           Divider(color: AppColors.textSub.withOpacity(0.2), height: 3.h),
           _buildInfoRow('Student ID', user?.studentId, effectivelyLoading),
           Divider(color: AppColors.textSub.withOpacity(0.2), height: 3.h),
-          _buildInfoRow('Academic Year', user?.academicYear, effectivelyLoading),
+          _buildInfoRow(
+            'Academic Year',
+            user?.academicYear,
+            effectivelyLoading,
+          ),
         ],
       ),
     );
@@ -57,14 +57,18 @@ class ProfileInfoCard extends StatelessWidget {
         ),
         effectivelyLoading
             ? Container(
-                width: 25.w,
-                height: 14.sp,
-                decoration: BoxDecoration(
-                  color: AppColors.textSub.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ).animate(onPlay: (controller) => controller.repeat())
-                .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                    width: 25.w,
+                    height: 14.sp,
+                    decoration: BoxDecoration(
+                      color: AppColors.textSub.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  )
+                  .animate(onPlay: (controller) => controller.repeat())
+                  .shimmer(
+                    duration: 1200.ms,
+                    color: AppColors.white.withOpacity(0.3),
+                  )
             : Text(
                 value ?? '??',
                 style: TextStyle(

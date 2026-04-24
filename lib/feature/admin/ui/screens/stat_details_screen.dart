@@ -92,7 +92,8 @@ class StatDetailsScreen extends StatelessWidget {
                             await admin.rejectRequest(borrow.borrowId);
                           }
                         : null,
-                    onScanQR: (type == StatType.pendingPickup ||
+                    onScanQR:
+                        (type == StatType.pendingPickup ||
                             type == StatType.activeBorrows ||
                             type == StatType.overdue)
                         ? () {

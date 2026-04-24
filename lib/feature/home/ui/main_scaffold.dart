@@ -43,7 +43,9 @@ class _MainScaffoldState extends State<MainScaffold> {
 
   void _onUserLoaded() {
     if (_userProvider?.user != null) {
-      context.read<UserBooksProvider>().syncBorrowCount(_userProvider!.user!.id);
+      context.read<UserBooksProvider>().syncBorrowCount(
+        _userProvider!.user!.id,
+      );
       _userProvider!.removeListener(_onUserLoaded);
     }
   }

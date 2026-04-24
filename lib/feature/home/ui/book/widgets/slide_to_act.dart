@@ -107,7 +107,9 @@ class _SlideToActState extends State<SlideToAct> {
                             ),
                           )
                         : Icon(
-                            _confirmed ? Icons.check : Icons.arrow_forward_ios_rounded,
+                            _confirmed
+                                ? Icons.check
+                                : Icons.arrow_forward_ios_rounded,
                             color: Colors.white,
                             size: 20,
                           ),

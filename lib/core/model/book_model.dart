@@ -88,7 +88,6 @@ class Book {
       coverUrl != '??' &&
       coverUrl != "NO_IMAGE_PLACEHOLDER";
 
-
   factory Book.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return Book.fromMap(data);

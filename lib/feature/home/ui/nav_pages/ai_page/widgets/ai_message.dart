@@ -10,16 +10,15 @@ import 'package:unilib/feature/home/ui/book/book_screen.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/widgets/ai_chat_avatar.dart';
 import 'package:unilib/feature/home/ui/nav_pages/home_page/widgets/small_book_card.dart';
 
-
 class AiMessage extends StatefulWidget {
   final String msg;
   final String timeText;
   final bool shouldAnimate;
 
   const AiMessage({
-    super.key, 
-    required this.msg, 
-    this.timeText = "9:32 AM", 
+    super.key,
+    required this.msg,
+    this.timeText = "9:32 AM",
     this.shouldAnimate = false,
   });
 
@@ -69,18 +68,18 @@ class _AiMessageState extends State<AiMessage> {
     _typingTimer?.cancel();
     _displayedText = "";
     int index = 0;
-    
+
     final int maxAnimationMs = 2000;
     final int tickMs = 15;
-    
+
     final chars = _cleanMsg.characters;
     final int totalLength = chars.length;
-    
+
     int charsPerTick = 1;
     if (totalLength * tickMs > maxAnimationMs) {
       charsPerTick = (totalLength * tickMs / maxAnimationMs).ceil();
     }
-    
+
     _typingTimer = Timer.periodic(Duration(milliseconds: tickMs), (timer) {
       if (!mounted) {
         timer.cancel();
@@ -90,7 +89,7 @@ class _AiMessageState extends State<AiMessage> {
       if (index < totalLength) {
         int endIndex = index + charsPerTick;
         if (endIndex > totalLength) endIndex = totalLength;
-        
+
         setState(() {
           _displayedText = chars.take(endIndex).toString();
         });
@@ -104,10 +103,10 @@ class _AiMessageState extends State<AiMessage> {
   Future<void> _fetchBooks(List<String> ids) async {
     if (!mounted) return;
     setState(() => _isFetchingBooks = true);
-    
+
     List<Book> books = [];
     final provider = context.read<BookCatalogProvider>();
-    
+
     for (final id in ids) {
       final book = await provider.fetchBookById(id);
       if (book != null) books.add(book);
@@ -167,7 +166,12 @@ class _AiMessageState extends State<AiMessage> {
                   child: Text(
                     _displayedText,
                     textAlign: TextAlign.start,
-                    textDirection: _displayedText.trim().startsWith(RegExp(r'[\u0600-\u06FF]')) ? TextDirection.rtl : TextDirection.ltr,
+                    textDirection:
+                        _displayedText.trim().startsWith(
+                          RegExp(r'[\u0600-\u06FF]'),
+                        )
+                        ? TextDirection.rtl
+                        : TextDirection.ltr,
                     style: TextStyle(
                       color: AppColors.textLight,
                       fontSize: 16.sp,
@@ -205,15 +209,20 @@ class _AiMessageState extends State<AiMessage> {
                   scrollDirection: Axis.horizontal,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: 2,
-                  itemBuilder: (context, index) => Container(
-                    width: 35.w,
-                    margin: EdgeInsets.only(right: 4.w),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.1)),
+                  itemBuilder: (context, index) =>
+                      Container(
+                            width: 35.w,
+                            margin: EdgeInsets.only(right: 4.w),
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withOpacity(0.05),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          )
+                          .animate(onPlay: (controller) => controller.repeat())
+                          .shimmer(
+                            duration: 1200.ms,
+                            color: AppColors.white.withOpacity(0.1),
+                          ),
                 ),
               ),
             )

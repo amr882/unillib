@@ -21,7 +21,31 @@ class SignupController extends ChangeNotifier {
   final firstNameCtrl = TextEditingController();
   final lastNameCtrl = TextEditingController();
   final studentIdCtrl = TextEditingController();
-  final facultyCtrl = TextEditingController();
+  String? selectedFaculty;
+
+  static const List<String> faculties = [
+    'Faculty of Human Medicine',
+    'Faculty of Nursing',
+    'Faculty of Veterinary Medicine',
+    'Faculty of Physical Therapy',
+    'Faculty of Arts',
+    'Faculty of Education',
+    'Faculty of Law',
+    'Faculty of Physical Education',
+    'Faculty of Specific Education',
+    'Faculty of Agriculture',
+    'Faculty of Applied Arts',
+    'Faculty of Commerce',
+    'Faculty of Computers and Artificial Intelligence',
+    'Faculty of Engineering – Benha',
+    'Faculty of Engineering – Shubra',
+    'Faculty of Science',
+  ];
+
+  void setFaculty(String? faculty) {
+    selectedFaculty = faculty;
+    notifyListeners();
+  }
 
   static const List<String> academicYears = [
     '1st Year',
@@ -80,7 +104,7 @@ class SignupController extends ChangeNotifier {
         firstName: firstNameCtrl.text.trim(),
         lastName: lastNameCtrl.text.trim(),
         studentId: studentIdCtrl.text.trim(),
-        faculty: facultyCtrl.text.trim(),
+        faculty: selectedFaculty ?? '',
         academicYear: selectedYear,
       );
       await Future.delayed(const Duration(seconds: 2));
@@ -99,7 +123,6 @@ class SignupController extends ChangeNotifier {
     firstNameCtrl.dispose();
     lastNameCtrl.dispose();
     studentIdCtrl.dispose();
-    facultyCtrl.dispose();
     emailCtrl.dispose();
     passwordCtrl.dispose();
     confirmPasswordCtrl.dispose();

@@ -1,18 +1,24 @@
-import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:unilib/core/model/user_model.dart';
 import 'package:unilib/keys.dart';
+import 'book_context_search.dart';
 
+/// Core AI service responsible for model initialization and chat session creation.
 class AiCoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final BookContextSearch _bookSearch = BookContextSearch();
 
+  /// Initializes and returns a GenerativeModel configured with system instructions.
   Future<GenerativeModel> initModel({UserModel? user}) async {
     await _firestore.collection('books').limit(1).get();
 
     String userContext = "";
     if (user != null) {
       userContext =
-          "User Context: The user is a student studying in the ${user.faculty} faculty (Year: ${user.academicYear}). Tailor your study advice, academic roadmaps, and book recommendations to match their academic background.\n";
+          "User Context: The user is a student studying in the ${user.faculty} faculty "
+          "(Year: ${user.academicYear}). Tailor your study advice, academic roadmaps, "
+          "and book recommendations to match their academic background.\n";
     }
 
     final systemInstruction = Content.system(
@@ -66,175 +72,12 @@ class AiCoreService {
     );
   }
 
-  Future<String?> getRelevantBooksContext(String query) async {
-    final lower = query.toLowerCase().trim();
-    if (lower.isEmpty) return null;
-
-    final words = lower
-        .split(RegExp(r'[\s,.;:!?]+'))
-        .where(
-          (w) =>
-              w.length > 2 &&
-              ![
-                'the',
-                'and',
-                'for',
-                'you',
-                'have',
-                'books',
-                'book',
-                'please',
-                'find',
-                'show',
-                'search',
-                'give',
-                'any',
-                'some',
-                'about',
-                'how',
-                'many',
-                'what',
-                'who',
-                'why',
-                'where',
-                'when',
-                'which',
-                'there',
-                'their',
-                'they',
-                'this',
-                'that',
-                'these',
-                'those',
-                'does',
-                'did',
-                'can',
-                'could',
-                'would',
-                'should',
-                'will',
-                'are',
-                'was',
-                'were',
-                'has',
-                'had',
-                'been',
-                'from',
-                'with',
-                'than',
-                'then',
-                'chapters',
-                'pages',
-                'tell',
-                'much',
-                'know',
-                'want',
-                'like',
-              ].contains(w),
-        )
-        .toList();
-
-    if (words.isEmpty) {
-      return _getFallbackContext();
-    }
-
-    try {
-      final List<QueryDocumentSnapshot<Map<String, dynamic>>> allDocs = [];
-      final Set<String> seenIds = {};
-
-      final searchTasks = <Future<QuerySnapshot<Map<String, dynamic>>>>[];
-
-      for (final word in words.take(3)) {
-        // 1. Title prefix search
-        searchTasks.add(
-          _firestore
-              .collection('books')
-              .where('title_lower', isGreaterThanOrEqualTo: word)
-              .where('title_lower', isLessThan: '${word}z')
-              .limit(5)
-              .get(),
-        );
-
-        // 2. Tags array search
-        searchTasks.add(
-          _firestore
-              .collection('books')
-              .where('tags', arrayContains: word)
-              .limit(5)
-              .get(),
-        );
-      }
-
-      final results = await Future.wait(searchTasks);
-
-      for (final snap in results) {
-        for (final doc in snap.docs) {
-          if (!seenIds.contains(doc.id)) {
-            allDocs.add(doc);
-            seenIds.add(doc.id);
-          }
-        }
-      }
-
-      if (allDocs.isEmpty && words.isNotEmpty) {
-        final catSnap = await _firestore
-            .collection('books')
-            .where('category', isGreaterThanOrEqualTo: words.first)
-            .where('category', isLessThan: '${words.first}z')
-            .limit(5)
-            .get();
-
-        for (final doc in catSnap.docs) {
-          if (!seenIds.contains(doc.id)) {
-            allDocs.add(doc);
-            seenIds.add(doc.id);
-          }
-        }
-      }
-
-      if (allDocs.isEmpty) {
-        return _getFallbackContext();
-      }
-
-      return _formatContext(allDocs);
-    } catch (e) {
-      return null;
-    }
+  /// Delegates book context search to [BookContextSearch].
+  Future<String?> getRelevantBooksContext(String query) {
+    return _bookSearch.getRelevantBooksContext(query);
   }
 
-  Future<String?> _getFallbackContext() async {
-    try {
-      final snap = await _firestore.collection('books').limit(5).get();
-      if (snap.docs.isEmpty) return null;
-
-      return "No exact keyword matches found. Standard library catalog fallback (popular books):\n\n${_formatContext(snap.docs)}";
-    } catch (e) {
-      return null;
-    }
-  }
-
-  String _formatContext(
-    List<QueryDocumentSnapshot<Map<String, dynamic>>> docs,
-  ) {
-    if (docs.isEmpty) {
-      return "The library catalog is currently unavailable.";
-    }
-
-    return "Relevant books from our library catalog:\n\n${docs.map((doc) {
-      final b = doc.data();
-      final id = doc.id;
-      final location = b['location'] as Map<String, dynamic>?;
-      final locStr = location != null ? "Building ${location['building'] ?? '??'}, Floor ${location['floor'] ?? '??'}, Shelf ${location['shelf'] ?? '??'}" : "Unknown location";
-
-      return "- ID: $id\n"
-          "  Title: ${b['title'] ?? 'Unknown'}\n"
-          "  Author: ${b['author'] ?? 'Unknown'}\n"
-          "  Category: ${b['category'] ?? 'N/A'}\n"
-          "  Available: ${b['available_copies'] ?? 0}\n"
-          "  Loc: $locStr";
-    }).join('\n\n')}";
-  }
-
+  /// Starts a new chat session with optional history.
   ChatSession startChat(GenerativeModel model, {List<Content>? history}) {
     return model.startChat(history: history);
   }

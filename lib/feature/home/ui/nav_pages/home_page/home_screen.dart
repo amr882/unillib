@@ -41,9 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Column(
         children: [
           HomeTopCard(
-            userName: user != null ? '${user.firstName} ${user.lastName}'.toUpperCase() : '',
-            isLoading: context.watch<UserProvider>().isLoading,
-          ).animate().fadeIn(duration: 600.ms).slideY(begin: -0.2, end: 0, curve: Curves.easeOutQuad),
+                userName: user != null
+                    ? '${user.firstName} ${user.lastName}'.toUpperCase()
+                    : '',
+                isLoading: context.watch<UserProvider>().isLoading,
+              )
+              .animate()
+              .fadeIn(duration: 600.ms)
+              .slideY(begin: -0.2, end: 0, curve: Curves.easeOutQuad),
 
           Expanded(
             child: SingleChildScrollView(
@@ -65,16 +70,19 @@ class _HomeScreenState extends State<HomeScreen> {
                         itemBuilder: (context, index) {
                           final book = books.recentlyViewed[index];
                           return GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => BookScreen(book: book),
-                                ),
-                              );
-                            },
-                            child: SmallBookCard(book: book),
-                          ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideX(begin: 0.2, end: 0);
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BookScreen(book: book),
+                                    ),
+                                  );
+                                },
+                                child: SmallBookCard(book: book),
+                              )
+                              .animate()
+                              .fadeIn(delay: (index * 100).ms, duration: 400.ms)
+                              .slideX(begin: 0.2, end: 0);
                         },
                       ),
                     ),
@@ -125,21 +133,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: EdgeInsets.symmetric(horizontal: 5.w),
                       itemCount: books.trending.length,
                       separatorBuilder: (_, _) => SizedBox(height: 1.5.h),
-                      itemBuilder: (context, index) => GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  BookScreen(book: books.trending[index]),
-                            ),
-                          );
-                        },
-                        child: TrendingBookTile(
-                          rank: index + 1,
-                          book: books.trending[index],
-                        ),
-                      ).animate().fadeIn(delay: (index * 100).ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
+                      itemBuilder: (context, index) =>
+                          GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BookScreen(
+                                        book: books.trending[index],
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: TrendingBookTile(
+                                  rank: index + 1,
+                                  book: books.trending[index],
+                                ),
+                              )
+                              .animate()
+                              .fadeIn(delay: (index * 100).ms, duration: 400.ms)
+                              .slideY(begin: 0.2, end: 0),
                     ),
 
                   SizedBox(height: 3.h),

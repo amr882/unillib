@@ -64,7 +64,7 @@ class AiChatHeader extends StatelessWidget {
             ),
             SizedBox(width: 3.w),
           ],
-          
+
           AiChatAvatar(size: 11.w),
           SizedBox(width: 3.w),
 

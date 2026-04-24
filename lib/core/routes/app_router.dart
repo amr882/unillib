@@ -14,14 +14,10 @@ class AppRouter {
   Route generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case Routes.mainScaffold:
-        return MaterialPageRoute(
-          builder: (_) => const MainScaffold(),
-        );
+        return MaterialPageRoute(builder: (_) => const MainScaffold());
 
       case Routes.adminDashboard:
-        return MaterialPageRoute(
-          builder: (_) => const AdminDashboardScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
 
       case Routes.statDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -31,16 +27,12 @@ class AppRouter {
             title: args['title'] as String,
           ),
         );
-      
+
       case Routes.profileScreen:
-        return MaterialPageRoute(
-          builder: (_) => const ProfileScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
 
       case Routes.aiChatScreen:
-        return MaterialPageRoute(
-          builder: (_) => const AiChatScreen(),
-        );
+        return MaterialPageRoute(builder: (_) => const AiChatScreen());
 
       case Routes.loginScreen:
         return MaterialPageRoute(

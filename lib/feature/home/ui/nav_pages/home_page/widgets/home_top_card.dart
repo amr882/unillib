@@ -31,10 +31,7 @@ class HomeTopCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              HomeWelcomeHeader(
-                userName: userName,
-                isLoading: isLoading,
-              ),
+              HomeWelcomeHeader(userName: userName, isLoading: isLoading),
               SizedBox(height: 2.h),
               const HomeSearchBar(),
             ],

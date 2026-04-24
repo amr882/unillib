@@ -10,6 +10,7 @@ import 'package:unilib/feature/admin/ui/widgets/borrow_detail_card.dart';
 import 'package:unilib/core/model/user_model.dart';
 import 'package:unilib/feature/admin/ui/screens/stat_details_screen.dart';
 import 'package:unilib/feature/admin/ui/tabs/scanner_tab.dart';
+
 class OverviewTab extends StatefulWidget {
   const OverviewTab({super.key});
 
@@ -52,10 +53,7 @@ class _OverviewTabState extends State<OverviewTab> {
             const SizedBox(height: 4),
             Text(
               'Library management overview',
-              style: GoogleFonts.dmSans(
-                fontSize: 14,
-                color: Colors.white54,
-              ),
+              style: GoogleFonts.dmSans(fontSize: 14, color: Colors.white54),
             ),
             const SizedBox(height: 24),
 
@@ -139,8 +137,11 @@ class _OverviewTabState extends State<OverviewTab> {
                 const SizedBox(height: 30),
                 Row(
                   children: [
-                    const Icon(Icons.warning_rounded,
-                        color: Color(0xFFEF4444), size: 20),
+                    const Icon(
+                      Icons.warning_rounded,
+                      color: Color(0xFFEF4444),
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Overdue Books',
@@ -153,7 +154,9 @@ class _OverviewTabState extends State<OverviewTab> {
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444).withOpacity(0.15),
                         borderRadius: BorderRadius.circular(12),
@@ -172,9 +175,9 @@ class _OverviewTabState extends State<OverviewTab> {
                 const SizedBox(height: 14),
                 ...admin.overdueBorrows.map((borrow) {
                   return FutureBuilder<UserModel?>(
-                    future: context
-                        .read<AdminProvider>()
-                        .fetchUserDetails(borrow.userId),
+                    future: context.read<AdminProvider>().fetchUserDetails(
+                      borrow.userId,
+                    ),
                     builder: (context, snap) {
                       return BorrowDetailCard(
                         borrow: borrow,
@@ -210,9 +213,9 @@ class _OverviewTabState extends State<OverviewTab> {
                 const SizedBox(height: 14),
                 ...admin.pendingBorrows.take(3).map((borrow) {
                   return FutureBuilder<UserModel?>(
-                    future: context
-                        .read<AdminProvider>()
-                        .fetchUserDetails(borrow.userId),
+                    future: context.read<AdminProvider>().fetchUserDetails(
+                      borrow.userId,
+                    ),
                     builder: (context, snap) {
                       return BorrowDetailCard(
                         borrow: borrow,
@@ -229,9 +232,9 @@ class _OverviewTabState extends State<OverviewTab> {
                           );
                         },
                         onReject: () async {
-                          await context
-                              .read<AdminProvider>()
-                              .rejectRequest(borrow.borrowId);
+                          await context.read<AdminProvider>().rejectRequest(
+                            borrow.borrowId,
+                          );
                         },
                       );
                     },

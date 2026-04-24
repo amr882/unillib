@@ -30,10 +30,11 @@ class NotificationService {
       const DarwinInitializationSettings initializationSettingsDarwin =
           DarwinInitializationSettings();
 
-      const InitializationSettings initializationSettings = InitializationSettings(
-        android: initializationSettingsAndroid,
-        iOS: initializationSettingsDarwin,
-      );
+      const InitializationSettings initializationSettings =
+          InitializationSettings(
+            android: initializationSettingsAndroid,
+            iOS: initializationSettingsDarwin,
+          );
 
       await _notificationsPlugin.initialize(
         settings: initializationSettings,
@@ -52,13 +53,14 @@ class NotificationService {
     required String body,
     String? payload,
   }) async {
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'unilib_main_channel',
-      'UniLib Notifications',
-      channelDescription: 'General notifications for UniLib',
-      importance: Importance.max,
-      priority: Priority.high,
-    );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'unilib_main_channel',
+          'UniLib Notifications',
+          channelDescription: 'General notifications for UniLib',
+          importance: Importance.max,
+          priority: Priority.high,
+        );
 
     const NotificationDetails notificationDetails = NotificationDetails(
       android: androidDetails,

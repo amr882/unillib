@@ -48,7 +48,11 @@ class AiChatInputField extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.gold100.withOpacity(0.3)),
               ),
-              child: Icon(Icons.camera_alt_rounded, color: AppColors.gold100, size: 20.sp),
+              child: Icon(
+                Icons.camera_alt_rounded,
+                color: AppColors.gold100,
+                size: 20.sp,
+              ),
             ),
           ),
           SizedBox(width: 2.w),
@@ -58,7 +62,9 @@ class AiChatInputField extends StatelessWidget {
             child: ValueListenableBuilder(
               valueListenable: controller,
               builder: (context, value, child) {
-                final isArabic = value.text.trim().startsWith(RegExp(r'[\u0600-\u06FF]'));
+                final isArabic = value.text.trim().startsWith(
+                  RegExp(r'[\u0600-\u06FF]'),
+                );
                 return Container(
                   decoration: BoxDecoration(
                     color: AppColors.gold500.withOpacity(0.05),
@@ -89,7 +95,11 @@ class AiChatInputField extends StatelessWidget {
                                 top: -5,
                                 right: -5,
                                 child: IconButton(
-                                  icon: const Icon(Icons.cancel, color: Colors.white, size: 20),
+                                  icon: const Icon(
+                                    Icons.cancel,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                   onPressed: onRemoveImage,
                                 ),
                               ),
@@ -99,19 +109,27 @@ class AiChatInputField extends StatelessWidget {
                       TextField(
                         cursorColor: AppColors.white,
                         controller: controller,
-                        onSubmitted: (_) => isLoading ? onStop?.call() : onSend(),
-                        style: TextStyle(color: AppColors.textLight, fontSize: 16.sp),
+                        onSubmitted: (_) =>
+                            isLoading ? onStop?.call() : onSend(),
+                        style: TextStyle(
+                          color: AppColors.textLight,
+                          fontSize: 16.sp,
+                        ),
                         maxLines: 4,
                         minLines: 1,
                         textAlign: TextAlign.start,
-                        textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
+                        textDirection: isArabic
+                            ? TextDirection.rtl
+                            : TextDirection.ltr,
                         decoration: InputDecoration(
                           hintText: 'Ask UniLib AI...',
                           hintStyle: TextStyle(
                             color: AppColors.gold100.withOpacity(0.5),
                             fontSize: 16.sp,
                           ),
-                          border: OutlineInputBorder(borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                            borderSide: BorderSide.none,
+                          ),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide.none,
                           ),
@@ -143,15 +161,20 @@ class AiChatInputField extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
                 gradient: LinearGradient(
-                  colors: isLoading 
-                    ? [Colors.redAccent.withOpacity(0.8), Colors.red.withOpacity(0.6)]
-                    : [AppColors.gold400, AppColors.gold100],
+                  colors: isLoading
+                      ? [
+                          Colors.redAccent.withOpacity(0.8),
+                          Colors.red.withOpacity(0.6),
+                        ]
+                      : [AppColors.gold400, AppColors.gold100],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isLoading ? Colors.red.withOpacity(0.2) : AppColors.navyInput,
+                    color: isLoading
+                        ? Colors.red.withOpacity(0.2)
+                        : AppColors.navyInput,
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),

@@ -56,7 +56,10 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: AppColors.gold),
-                title: const Text('Take a photo', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Take a photo',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _getImage(ImageSource.camera);
@@ -64,7 +67,10 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library, color: AppColors.gold),
-                title: const Text('Choose from gallery', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Choose from gallery',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _getImage(ImageSource.gallery);
@@ -79,7 +85,10 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
 
   Future<void> _getImage(ImageSource source) async {
     try {
-      final XFile? image = await _picker.pickImage(source: source, imageQuality: 70);
+      final XFile? image = await _picker.pickImage(
+        source: source,
+        imageQuality: 70,
+      );
       if (image != null) {
         final bytes = await image.readAsBytes();
         setState(() {

@@ -8,11 +8,7 @@ class ProfileAvatarCard extends StatelessWidget {
   final UserModel? user;
   final bool isLoading;
 
-  const ProfileAvatarCard({
-    super.key,
-    this.user,
-    this.isLoading = false,
-  });
+  const ProfileAvatarCard({super.key, this.user, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -36,19 +32,25 @@ class ProfileAvatarCard extends StatelessWidget {
           children: [
             effectivelyLoading
                 ? Container(
-                    width: 12.h,
-                    height: 12.h,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.blue,
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                        width: 12.h,
+                        height: 12.h,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.blue,
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(
+                        duration: 1200.ms,
+                        color: AppColors.white.withOpacity(0.3),
+                      )
                 : CircleAvatar(
                     radius: 6.h,
                     backgroundColor: AppColors.blue,
                     child: Text(
-                      user!.fullName.isEmpty ? '?' : user!.fullName[0].toUpperCase(),
+                      user!.fullName.isEmpty
+                          ? '?'
+                          : user!.fullName[0].toUpperCase(),
                       style: TextStyle(
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
@@ -59,14 +61,18 @@ class ProfileAvatarCard extends StatelessWidget {
             SizedBox(height: 2.h),
             effectivelyLoading
                 ? Container(
-                    width: 40.w,
-                    height: 18.sp,
-                    decoration: BoxDecoration(
-                      color: AppColors.textSub.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                        width: 40.w,
+                        height: 18.sp,
+                        decoration: BoxDecoration(
+                          color: AppColors.textSub.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(
+                        duration: 1200.ms,
+                        color: AppColors.white.withOpacity(0.3),
+                      )
                 : Text(
                     user!.fullName,
                     style: TextStyle(
@@ -78,17 +84,24 @@ class ProfileAvatarCard extends StatelessWidget {
             SizedBox(height: 0.5.h),
             effectivelyLoading
                 ? Container(
-                    width: 30.w,
-                    height: 16.sp,
-                    decoration: BoxDecoration(
-                      color: AppColors.textSub.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                        width: 30.w,
+                        height: 16.sp,
+                        decoration: BoxDecoration(
+                          color: AppColors.textSub.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(
+                        duration: 1200.ms,
+                        color: AppColors.white.withOpacity(0.3),
+                      )
                 : Text(
                     user!.email,
-                    style: TextStyle(fontSize: 16.sp, color: AppColors.textMuted),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: AppColors.textMuted,
+                    ),
                   ),
           ],
         ),

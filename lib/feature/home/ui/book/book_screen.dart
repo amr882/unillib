@@ -14,7 +14,7 @@ import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
 import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
 import 'package:unilib/feature/home/ui/book/widgets/action_buttons.dart';
-import 'package:unilib/feature/home/ui/nav_pages/home_page/widgets/small_book_card.dart';
+import 'package:unilib/feature/home/ui/book/widgets/related_books_section.dart';
 import 'package:unilib/feature/home/ui/book/widgets/details.dart';
 import 'package:unilib/feature/home/ui/book/widgets/header.dart';
 import 'package:unilib/feature/home/ui/book/widgets/location.dart';
@@ -36,11 +36,9 @@ class _BookScreenState extends State<BookScreen> {
 
   late Future<List<Book>> _relatedFuture;
 
-
   @override
   void initState() {
     super.initState();
-
 
     _countdownTimer = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) setState(() {});
@@ -63,8 +61,6 @@ class _BookScreenState extends State<BookScreen> {
     super.dispose();
   }
 
-
-
   Future<void> _handleBorrow() async {
     final userId = context.read<UserProvider>().user?.id ?? '';
     if (userId.isEmpty) return;
@@ -81,13 +77,14 @@ class _BookScreenState extends State<BookScreen> {
       NotificationService().showNotification(
         id: DateTime.now().millisecondsSinceEpoch.remainder(100000),
         title: 'Borrowing Successful!',
-        body: 'You have successfully requested "${widget.book.title}". Pick it up within 48h!',
+        body:
+            'You have successfully requested "${widget.book.title}". Pick it up within 48h!',
       );
-      
+
       // Show ticket dialog - we can fetch it once here or rely on the fact it was just created
       final records = await userBooksProvider.fetchUserBorrows(userId);
       final newRecord = records.firstWhere((r) => r.bookId == widget.book.id);
-      
+
       if (mounted) {
         showDialog(
           context: context,
@@ -98,7 +95,6 @@ class _BookScreenState extends State<BookScreen> {
           ),
         );
       }
-
 
       setState(() {
         _isLoading = false;
@@ -173,22 +169,33 @@ class _BookScreenState extends State<BookScreen> {
                             .animate()
                             .fadeIn(delay: 200.ms)
                             .slideY(begin: 0.1, end: 0),
-                        
+
                         GestureDetector(
                           onTap: () {
-                            context.read<GenerativeAiProvider>().startBookContextChat(currentBook);
+                            context
+                                .read<GenerativeAiProvider>()
+                                .startBookContextChat(currentBook);
                             context.pushNamed(Routes.aiChatScreen);
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.gold.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                              border: Border.all(
+                                color: AppColors.gold.withOpacity(0.3),
+                              ),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.auto_awesome, color: AppColors.gold, size: 16),
+                                Icon(
+                                  Icons.auto_awesome,
+                                  color: AppColors.gold,
+                                  size: 16,
+                                ),
                                 SizedBox(width: 4),
                                 Text(
                                   "Ask AI",
@@ -226,12 +233,14 @@ class _BookScreenState extends State<BookScreen> {
                     SizedBox(height: 1.h),
                     LocationCard(book: currentBook),
                     SizedBox(height: 4.h),
-                    
+
                     StreamBuilder<BorrowRecord?>(
-                      stream: context.read<UserBooksProvider>().getBorrowRecordForBookStream(userId, currentBook.id),
+                      stream: context
+                          .read<UserBooksProvider>()
+                          .getBorrowRecordForBookStream(userId, currentBook.id),
                       builder: (context, snapshot) {
                         final record = snapshot.data;
-                        
+
                         return Column(
                           children: [
                             if (record != null) ...[
@@ -239,76 +248,24 @@ class _BookScreenState extends State<BookScreen> {
                               SizedBox(height: 1.5.h),
                             ],
                             ActionButtons(
-                              book: currentBook,
-                              isLoading: _isLoading,
-                              userBorrowRecord: record,
-                              studentId: userId,
-                              onBorrowTap: _handleBorrow,
-                              onRefreshRequested: () {}, // No longer needed with streams
-                            )
-                            .animate()
-                            .fadeIn(delay: 500.ms)
-                            .scale(begin: const Offset(0.95, 0.95)),
+                                  book: currentBook,
+                                  isLoading: _isLoading,
+                                  userBorrowRecord: record,
+                                  studentId: userId,
+                                  onBorrowTap: _handleBorrow,
+                                  onRefreshRequested:
+                                      () {}, // No longer needed with streams
+                                )
+                                .animate()
+                                .fadeIn(delay: 500.ms)
+                                .scale(begin: const Offset(0.95, 0.95)),
                           ],
                         );
                       },
                     ),
                     SizedBox(height: 4.h),
 
-                    _SectionTitle(
-                      title: 'You might also like',
-                    ).animate().fadeIn(delay: 600.ms),
-                    SizedBox(height: 1.5.h),
-                    FutureBuilder<List<Book>>(
-                      future: _relatedFuture,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: CircularProgressIndicator(
-                              color: AppColors.gold,
-                            ),
-                          );
-                        }
-                        if (snapshot.hasError ||
-                            !snapshot.hasData ||
-                            snapshot.data!.isEmpty) {
-                          return Text(
-                            'No related resources found.',
-                            style: TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 12.sp,
-                            ),
-                          );
-                        }
-                        return SizedBox(
-                          height: 27.h,
-                          child: ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            scrollDirection: Axis.horizontal,
-                            itemCount: snapshot.data!.length,
-                            itemBuilder: (context, index) {
-                              final relatedBook = snapshot.data![index];
-                              return GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              BookScreen(book: relatedBook),
-                                        ),
-                                      );
-                                    },
-                                    child: SmallBookCard(book: relatedBook),
-                                  )
-                                  .animate()
-                                  .fadeIn(delay: (index * 100).ms)
-                                  .slideX(begin: 0.1, end: 0);
-                            },
-                          ),
-                        );
-                      },
-                    ),
+                    RelatedBooksSection(relatedFuture: _relatedFuture),
                     SizedBox(height: 2.h),
                   ],
                 ),

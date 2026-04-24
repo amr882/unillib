@@ -71,10 +71,7 @@ class _LoginScreenState extends State<LoginScreen>
       } catch (_) {}
 
       if (!mounted) return;
-      context.pushNamedAndRemoveUntil(
-        targetRoute,
-        predicate: (_) => false,
-      );
+      context.pushNamedAndRemoveUntil(targetRoute, predicate: (_) => false);
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

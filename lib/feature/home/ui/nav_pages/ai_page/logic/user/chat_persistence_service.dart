@@ -30,14 +30,19 @@ class ChatPersistenceService {
           .orderBy('updatedAt', descending: true)
           .get();
 
-      return snapshot.docs.map((doc) => ChatSessionModel.fromMap(doc.data())).toList();
+      return snapshot.docs
+          .map((doc) => ChatSessionModel.fromMap(doc.data()))
+          .toList();
     } catch (e) {
       debugPrint('Error fetching from firestore: $e');
       rethrow;
     }
   }
 
-  Future<void> saveHistoryLocally(String userId, List<ChatSessionModel> history) async {
+  Future<void> saveHistoryLocally(
+    String userId,
+    List<ChatSessionModel> history,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final data = history.map((e) => e.toJson()).toList();
@@ -47,7 +52,10 @@ class ChatPersistenceService {
     }
   }
 
-  Future<void> saveSessionToRemote(String userId, ChatSessionModel session) async {
+  Future<void> saveSessionToRemote(
+    String userId,
+    ChatSessionModel session,
+  ) async {
     try {
       await _firestore
           .collection('users')
@@ -74,6 +82,11 @@ class ChatPersistenceService {
   }
 
   String generateSessionId(String userId) {
-    return _firestore.collection('users').doc(userId).collection('chats').doc().id;
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('chats')
+        .doc()
+        .id;
   }
 }

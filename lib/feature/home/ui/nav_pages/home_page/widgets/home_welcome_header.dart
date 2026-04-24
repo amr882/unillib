@@ -17,7 +17,8 @@ class HomeWelcomeHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // If loading or name is literally "NULL NULL", treat as loading
-    final bool effectivelyLoading = isLoading || userName.toUpperCase().contains('NULL');
+    final bool effectivelyLoading =
+        isLoading || userName.toUpperCase().contains('NULL');
     final String displayUserName = effectivelyLoading ? '...' : userName;
 
     return Row(
@@ -36,14 +37,18 @@ class HomeWelcomeHeader extends StatelessWidget {
             SizedBox(height: 0.3.h),
             effectivelyLoading
                 ? Container(
-                    width: 40.w,
-                    height: 22.sp,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ).animate(onPlay: (controller) => controller.repeat())
-                    .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                        width: 40.w,
+                        height: 22.sp,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      )
+                      .animate(onPlay: (controller) => controller.repeat())
+                      .shimmer(
+                        duration: 1200.ms,
+                        color: AppColors.white.withOpacity(0.3),
+                      )
                 : Text(
                     displayUserName,
                     style: TextStyle(
@@ -57,19 +62,25 @@ class HomeWelcomeHeader extends StatelessWidget {
         ),
         effectivelyLoading
             ? Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.gold,
-                ),
-              ).animate(onPlay: (controller) => controller.repeat())
-                .shimmer(duration: 1200.ms, color: AppColors.white.withOpacity(0.3))
+                    width: 40,
+                    height: 40,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.gold,
+                    ),
+                  )
+                  .animate(onPlay: (controller) => controller.repeat())
+                  .shimmer(
+                    duration: 1200.ms,
+                    color: AppColors.white.withOpacity(0.3),
+                  )
             : CircleAvatar(
                 radius: 20,
                 backgroundColor: AppColors.gold,
                 child: Text(
-                  displayUserName.isNotEmpty && displayUserName != '...' ? displayUserName[0] : 'U',
+                  displayUserName.isNotEmpty && displayUserName != '...'
+                      ? displayUserName[0]
+                      : 'U',
                   style: AppTextStyles.heading.copyWith(
                     color: AppColors.white,
                     fontSize: 18,

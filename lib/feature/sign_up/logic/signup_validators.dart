@@ -11,9 +11,8 @@ class SignupValidators {
     return null;
   }
 
-  static String? validateFaculty(String? v) => (v == null || v.trim().isEmpty)
-      ? 'Enter your faculty / department'
-      : null;
+  static String? validateFaculty(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'Please select your faculty' : null;
 
   static String? validateEmail(String? v) {
     if (v == null || v.trim().isEmpty) return 'Enter your university email';

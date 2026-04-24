@@ -71,7 +71,7 @@ class ReviewStep extends StatelessWidget {
               ReviewRow(
                 icon: Icons.school_outlined,
                 label: 'Faculty',
-                value: ctrl.facultyCtrl.text,
+                value: ctrl.selectedFaculty ?? '',
               ),
               ReviewRow(
                 icon: Icons.calendar_today_outlined,

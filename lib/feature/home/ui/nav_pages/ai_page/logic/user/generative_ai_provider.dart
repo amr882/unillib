@@ -9,10 +9,14 @@ import 'package:unilib/core/model/chat_session_model.dart';
 import 'package:unilib/core/model/user_model.dart';
 import '../general/ai_core_service.dart';
 import 'chat_persistence_service.dart';
+import 'chat_session_manager.dart';
+import 'chat_message_handler.dart';
 
 class GenerativeAiProvider extends ChangeNotifier {
   final AiCoreService _aiCore = AiCoreService();
   final ChatPersistenceService _persistence = ChatPersistenceService();
+  late final ChatSessionManager _sessionManager;
+  late final ChatMessageHandler _messageHandler;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -43,6 +47,11 @@ class GenerativeAiProvider extends ChangeNotifier {
   bool _isInitialized = false;
 
   GenerativeAiProvider() {
+    _sessionManager = ChatSessionManager(aiCore: _aiCore);
+    _messageHandler = ChatMessageHandler(
+      aiCore: _aiCore,
+      persistence: _persistence,
+    );
     _initModel();
   }
 
@@ -66,6 +75,8 @@ class GenerativeAiProvider extends ChangeNotifier {
         .messages;
   }
 
+  // ── Initialization ────────────────────────────────────────────
+
   Future<void> _initModel() async {
     _isLoading = true;
     _errorMessage = null;
@@ -74,7 +85,10 @@ class GenerativeAiProvider extends ChangeNotifier {
       final uid = _auth.currentUser?.uid;
       UserModel? appUser;
       if (uid != null) {
-        final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
         if (doc.exists && doc.data() != null) {
           appUser = UserModel.fromMap(doc.data()!, uid);
         }
@@ -96,33 +110,24 @@ class GenerativeAiProvider extends ChangeNotifier {
   Future<bool> _ensureChatReady() async {
     if (_isInitialized && _chat != null) return true;
 
-    if (!_isInitialized) {
-      await _initModel();
-    }
-
+    if (!_isInitialized) await _initModel();
     if (!_isInitialized) return false;
 
     if (_chat == null) {
       if (_activeChatId == null) {
-        _chat = _aiCore.startChat(_model);
+        _chat = _sessionManager.startNewChatSession(_model);
       } else {
-        try {
-          final session = _chatHistory.firstWhere((s) => s.id == _activeChatId);
-          final history = session.messages
-              .map(
-                (m) => m.isUser
-                    ? Content.text(m.text)
-                    : Content.model([TextPart(m.text)]),
-              )
-              .toList();
-          _chat = _aiCore.startChat(_model, history: history);
-        } catch (_) {
-          _chat = _aiCore.startChat(_model);
-        }
+        _chat = _sessionManager.restoreFromHistory(
+          _model,
+          _chatHistory,
+          _activeChatId!,
+        );
       }
     }
     return _chat != null;
   }
+
+  // ── Chat History ──────────────────────────────────────────────
 
   Future<void> loadChatHistory() async {
     final uid = _auth.currentUser?.uid;
@@ -134,26 +139,21 @@ class GenerativeAiProvider extends ChangeNotifier {
 
     try {
       _chatHistory = await _persistence.fetchRemoteHistory(uid);
-      await _persistence.saveHistoryLocally(uid, _chatHistory);
+      await _messageHandler.saveHistoryLocally(uid, _chatHistory);
       notifyListeners();
     } catch (e) {
       debugPrint('Firestore fetch failed: $e');
     }
   }
 
+  // ── Session Lifecycle ─────────────────────────────────────────
+
   void startNewChat() {
     _isViewingHistory = false;
     _activeChatId = null;
     _sessionStartTime = DateTime.now();
-    _tempNewChatMessages = [
-      Message(
-        text:
-            "Hello! I am UniLib AI, your personal AI assistant. How can I help you today?",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ),
-    ];
-    if (_isInitialized) _chat = _aiCore.startChat(_model);
+    _tempNewChatMessages = [_sessionManager.buildWelcomeMessage()];
+    if (_isInitialized) _chat = _sessionManager.startNewChatSession(_model);
     notifyListeners();
   }
 
@@ -161,27 +161,9 @@ class GenerativeAiProvider extends ChangeNotifier {
     _isViewingHistory = false;
     _activeChatId = null;
     _sessionStartTime = DateTime.now();
-    _tempNewChatMessages = [
-      Message(
-        text: "I see you are interested in '${book.title}'. I have loaded its details. What would you like to know or discuss about it?",
-        isUser: false,
-        timestamp: DateTime.now(),
-      ),
-    ];
+    _tempNewChatMessages = [_sessionManager.buildBookWelcomeMessage(book)];
     if (_isInitialized) {
-      final userMessage = Content.text(
-        "I am looking at this book. Please keep it in your context for our discussion:\n"
-        "Title: ${book.title}\n"
-        "Author: ${book.author}\n"
-        "Category: ${book.category}\n"
-        "Description: ${book.description}\n"
-        "ISBN: ${book.isbn}\n"
-        "Tags: ${book.tags.join(', ')}"
-      );
-      final modelResponse = Content.model([
-        TextPart("Understood. I have securely kept '${book.title}' in my context. I am ready to answer any questions, summarize its concepts, or help you understand how it relates to your studies.")
-      ]);
-      _chat = _aiCore.startChat(_model, history: [userMessage, modelResponse]);
+      _chat = _sessionManager.startBookContextChatSession(_model, book);
     }
     notifyListeners();
   }
@@ -194,14 +176,7 @@ class GenerativeAiProvider extends ChangeNotifier {
       _sessionStartTime = DateTime.now();
       _tempNewChatMessages = [];
       if (_isInitialized) {
-        final history = session.messages
-            .map(
-              (m) => m.isUser
-                  ? Content.text(m.text)
-                  : Content.model([TextPart(m.text)]),
-            )
-            .toList();
-        _chat = _aiCore.startChat(_model, history: history);
+        _chat = _sessionManager.startChatWithHistory(_model, session.messages);
       }
     } catch (_) {
       _errorMessage = "Chat not found.";
@@ -216,67 +191,17 @@ class GenerativeAiProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ── Messaging ─────────────────────────────────────────────────
+
   Future<void> sendMessage(String text, {Uint8List? imageBytes}) async {
     if (text.trim().isEmpty && imageBytes == null) return;
     _isRequestCancelled = false;
 
     if (!await _ensureChatReady()) return;
 
-    await _processFlow(
-      userText: text,
+    final userMsg = _messageHandler.createUserMessage(
+      text,
       imageBytes: imageBytes,
-      action: () async {
-        final context = await _aiCore.getRelevantBooksContext(text);
-        final String fullPrompt;
-        if (context != null && context.isNotEmpty) {
-          fullPrompt = "$text\n\n---\n[SYSTEM NOTE: Automated Catalog Search Results]\n"
-              "$context\n"
-              "(Instruction: The above search results are provided automatically. They indicate which books are physically available in the library. If the user is asking a follow-up question about a book already discussed in this conversation, you MUST ignore these search results and continue discussing the book from the conversation history. Answer the user's message above.)\n---\n";
-        } else {
-          fullPrompt = text;
-        }
-        
-        if (imageBytes != null) {
-          final content = Content.multi([
-            TextPart(fullPrompt),
-            DataPart('image/jpeg', imageBytes),
-          ]);
-          final response = await _chat?.sendMessage(content);
-          return response?.text;
-        } else {
-          final response = await _chat?.sendMessage(Content.text(fullPrompt));
-          return response?.text;
-        }
-      },
-    );
-  }
-
-  void stopGenerating() {
-    if (_isLoading) {
-      _isRequestCancelled = true;
-      _isLoading = false;
-      _errorMessage = "Response stopped by user.";
-      notifyListeners();
-    }
-  }
-
-  Future<void> _processFlow({
-    required String userText,
-    required Future<String?> Function() action,
-    Uint8List? imageBytes,
-    String? customTitle,
-  }) async {
-    if (_chat == null) {
-      _errorMessage = 'AI session not ready. Please try again.';
-      notifyListeners();
-      return;
-    }
-
-    final userMsg = Message(
-      text: userText.isEmpty && imageBytes != null ? "Uploaded an image" : userText,
-      isUser: true,
-      timestamp: DateTime.now(),
-      tempImage: imageBytes,
     );
     _addMessageToActiveSession(userMsg);
 
@@ -285,7 +210,12 @@ class GenerativeAiProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final responseText = await action();
+      final fullPrompt = await _messageHandler.buildFullPrompt(text);
+      final responseText = await _messageHandler.sendToModel(
+        _chat!,
+        fullPrompt,
+        imageBytes: imageBytes,
+      );
 
       // If the request was cancelled while waiting, don't add the AI message
       if (_isRequestCancelled) return;
@@ -296,20 +226,16 @@ class GenerativeAiProvider extends ChangeNotifier {
         );
       }
 
-      final aiMsg = Message(
-        text:
-            responseText ??
-            "I'm sorry, I couldn't generate a response. Please try rephrasing your request or checking our catalog directly.",
-        isUser: false,
-        timestamp: DateTime.now(),
-      );
-
+      final aiMsg = _messageHandler.createAiMessage(responseText);
       _addMessageToActiveSession(aiMsg);
 
-      if (_activeChatId == null) {
-        await _finalizeNewSession(customTitle ?? userText);
-      } else {
-        await _updateExistingSession();
+      final uid = _auth.currentUser?.uid;
+      if (uid != null) {
+        if (_activeChatId == null) {
+          await _finalizeNewSession(uid, text);
+        } else {
+          await _updateExistingSession(uid);
+        }
       }
     } catch (e) {
       if (!_isRequestCancelled) {
@@ -323,6 +249,17 @@ class GenerativeAiProvider extends ChangeNotifier {
     }
   }
 
+  void stopGenerating() {
+    if (_isLoading) {
+      _isRequestCancelled = true;
+      _isLoading = false;
+      _errorMessage = "Response stopped by user.";
+      notifyListeners();
+    }
+  }
+
+  // ── Internal Helpers ──────────────────────────────────────────
+
   void _addMessageToActiveSession(Message msg) {
     if (_activeChatId == null) {
       _tempNewChatMessages.add(msg);
@@ -332,51 +269,37 @@ class GenerativeAiProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _finalizeNewSession(String titleText) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return;
-
-    final id = _persistence.generateSessionId(uid);
-    final title = titleText.length > 30
-        ? '${titleText.substring(0, 30)}...'
-        : titleText;
-
-    final newSession = ChatSessionModel(
-      id: id,
-      title: title,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      messages: List.from(_tempNewChatMessages),
+  Future<void> _finalizeNewSession(String uid, String titleText) async {
+    final newSession = await _messageHandler.finalizeNewSession(
+      uid: uid,
+      titleText: titleText,
+      messages: _tempNewChatMessages,
     );
 
     _chatHistory.insert(0, newSession);
-    _activeChatId = id;
+    _activeChatId = newSession.id;
     _tempNewChatMessages = [];
 
-    await _persistence.saveSessionToRemote(uid, newSession);
-    await _persistence.saveHistoryLocally(uid, _chatHistory);
+    await _messageHandler.saveHistoryLocally(uid, _chatHistory);
   }
 
-  Future<void> _updateExistingSession() async {
-    final uid = _auth.currentUser?.uid;
+  Future<void> _updateExistingSession(String uid) async {
     final index = _chatHistory.indexWhere((s) => s.id == _activeChatId);
-    if (uid == null || index < 0) return;
+    if (index < 0) return;
 
-    final updatedSession = ChatSessionModel(
-      id: _chatHistory[index].id,
-      title: _chatHistory[index].title,
-      createdAt: _chatHistory[index].createdAt,
-      updatedAt: DateTime.now(),
-      messages: _chatHistory[index].messages,
+    final updatedSession = await _messageHandler.updateExistingSession(
+      uid: uid,
+      session: _chatHistory[index],
     );
 
     _chatHistory[index] = updatedSession;
     final session = _chatHistory.removeAt(index);
     _chatHistory.insert(0, session);
 
-    await _persistence.saveSessionToRemote(uid, updatedSession);
-    await _persistence.saveHistoryLocally(uid, _chatHistory);
+    await _messageHandler.saveHistoryLocally(uid, _chatHistory);
   }
+
+  // ── Delete ────────────────────────────────────────────────────
 
   Future<void> deleteChat(String chatId) async {
     final uid = _auth.currentUser?.uid;
@@ -389,12 +312,8 @@ class GenerativeAiProvider extends ChangeNotifier {
     }
     notifyListeners();
 
-    try {
-      await _persistence.deleteSession(uid, chatId);
-      await _persistence.saveHistoryLocally(uid, _chatHistory);
-    } catch (e) {
-      debugPrint('Delete failed: $e');
-    }
+    await _messageHandler.deleteSession(uid, chatId);
+    await _messageHandler.saveHistoryLocally(uid, _chatHistory);
   }
 
   void clearChat() => viewHistory();

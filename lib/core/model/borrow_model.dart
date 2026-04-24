@@ -1,11 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum BorrowStatus {
-  pendingPickup,
-  activeBorrow,
-  returned,
-  cancelled
-}
+enum BorrowStatus { pendingPickup, activeBorrow, returned, cancelled }
 
 class BorrowRecord {
   final String borrowId;
@@ -54,7 +49,9 @@ class BorrowRecord {
       bookCoverUrl: map['bookCoverUrl'] ?? '',
       status: parsedStatus,
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      pickupDeadline: (map['pickupDeadline'] as Timestamp?)?.toDate() ?? DateTime.now().add(const Duration(hours: 48)),
+      pickupDeadline:
+          (map['pickupDeadline'] as Timestamp?)?.toDate() ??
+          DateTime.now().add(const Duration(hours: 48)),
       pickupConfirmedAt: (map['pickupConfirmedAt'] as Timestamp?)?.toDate(),
       returnConfirmedAt: (map['returnConfirmedAt'] as Timestamp?)?.toDate(),
     );
@@ -80,8 +77,12 @@ class BorrowRecord {
       'status': statusStr,
       'createdAt': Timestamp.fromDate(createdAt),
       'pickupDeadline': Timestamp.fromDate(pickupDeadline),
-      'pickupConfirmedAt': pickupConfirmedAt != null ? Timestamp.fromDate(pickupConfirmedAt!) : null,
-      'returnConfirmedAt': returnConfirmedAt != null ? Timestamp.fromDate(returnConfirmedAt!) : null,
+      'pickupConfirmedAt': pickupConfirmedAt != null
+          ? Timestamp.fromDate(pickupConfirmedAt!)
+          : null,
+      'returnConfirmedAt': returnConfirmedAt != null
+          ? Timestamp.fromDate(returnConfirmedAt!)
+          : null,
     };
   }
 
@@ -90,7 +91,9 @@ class BorrowRecord {
   Duration get pickupTimeRemaining => pickupDeadline.difference(DateTime.now());
 
   Duration? get returnTimeRemaining {
-    if (status != BorrowStatus.activeBorrow || pickupConfirmedAt == null) return null;
+    if (status != BorrowStatus.activeBorrow || pickupConfirmedAt == null) {
+      return null;
+    }
     final deadline = pickupConfirmedAt!.add(const Duration(days: 14));
     return deadline.difference(DateTime.now());
   }

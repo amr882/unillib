@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/model/book_model.dart';
@@ -7,6 +6,7 @@ import 'package:unilib/core/model/borrow_model.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
 import 'package:unilib/feature/home/logic/user_books_provider.dart';
+import 'package:unilib/feature/home/ui/widgets/cancel_borrow_dialog.dart';
 import 'borrow_action_sheet.dart';
 import 'success_ticket_dialog.dart';
 
@@ -52,115 +52,10 @@ class _ActionButtonsState extends State<ActionButtons> {
   }
 
   Future<void> _cancelBorrow() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child:
-            Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.navyCard,
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: AppColors.navyBorder, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.cancel_rounded,
-                          color: Colors.redAccent,
-                          size: 32,
-                        ),
-                      ),
-                      SizedBox(height: 2.h),
-                      Text(
-                        'cancle Request',
-                        style: TextStyle(
-                          color: AppColors.white,
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      SizedBox(height: 1.h),
-                      Text(
-                        'You are about to cancle your pickup request for "${widget.book.title}". Do you want to continue?',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textSub,
-                          fontSize: 13.sp,
-                        ),
-                      ),
-                      SizedBox(height: 3.h),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.symmetric(vertical: 1.5.h),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                'No, Keep It',
-                                style: TextStyle(
-                                  color: AppColors.textMuted,
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 3.w),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                foregroundColor: AppColors.white,
-                                elevation: 0,
-                                padding: EdgeInsets.symmetric(vertical: 1.5.h),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                'Yes, cancle',
-                                style: TextStyle(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                )
-                .animate()
-                .scale(
-                  duration: 300.ms,
-                  curve: Curves.easeOutBack,
-                  begin: const Offset(0.8, 0.8),
-                )
-                .fadeIn(duration: 200.ms),
-      ),
+    final confirm = await CancelBorrowDialog.show(
+      context,
+      widget.book.title,
+      actionText: 'cancel your pickup request',
     );
 
     if (confirm == true && mounted) {
@@ -215,7 +110,7 @@ class _ActionButtonsState extends State<ActionButtons> {
     if (isBorrowed) {
       if (widget.userBorrowRecord!.status == BorrowStatus.pendingPickup) {
         btnColor = Colors.red;
-        btnText = 'cancle Request';
+        btnText = 'Cancel Request';
         btnIcon = Icons.cancel_rounded;
         onTapAction = canTap ? _cancelBorrow : null;
       } else {

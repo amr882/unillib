@@ -57,7 +57,10 @@ class BorrowActionSheet extends StatelessWidget {
                     color: AppColors.gold.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.auto_stories_rounded, color: AppColors.gold),
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    color: AppColors.gold,
+                  ),
                 ),
                 SizedBox(width: 4.w),
                 Expanded(

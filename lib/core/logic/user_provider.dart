@@ -49,49 +49,57 @@ class UserProvider extends ChangeNotifier {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .listen((snapshot) {
-      if (!_isBorrowsListenerInitialized) {
-        for (var doc in snapshot.docs) {
-          _knownBorrowStatuses[doc.id] = doc.data()['status'] as String? ?? '';
-        }
-        _isBorrowsListenerInitialized = true;
-        return;
-      }
+          if (!_isBorrowsListenerInitialized) {
+            for (var doc in snapshot.docs) {
+              _knownBorrowStatuses[doc.id] =
+                  doc.data()['status'] as String? ?? '';
+            }
+            _isBorrowsListenerInitialized = true;
+            return;
+          }
 
-      for (var change in snapshot.docChanges) {
-        if (change.type == DocumentChangeType.added || change.type == DocumentChangeType.modified) {
-          final doc = change.doc;
-          final newStatus = doc.data()?['status'] as String? ?? '';
-          final oldStatus = _knownBorrowStatuses[doc.id];
-          final bookTitle = doc.data()?['bookTitle'] as String? ?? 'Book';
+          for (var change in snapshot.docChanges) {
+            if (change.type == DocumentChangeType.added ||
+                change.type == DocumentChangeType.modified) {
+              final doc = change.doc;
+              final newStatus = doc.data()?['status'] as String? ?? '';
+              final oldStatus = _knownBorrowStatuses[doc.id];
+              final bookTitle = doc.data()?['bookTitle'] as String? ?? 'Book';
 
-          if (oldStatus != null && oldStatus != newStatus) {
-            final nId = doc.id.hashCode.abs().remainder(100000);
-            if (newStatus == 'active_borrow' && oldStatus == 'pending_pickup') {
-              NotificationService().showNotification(
-                id: nId,
-                title: 'Pickup Confirmed ✅',
-                body: 'Your pickup for "$bookTitle" has been confirmed. Enjoy your book!',
-              );
-            } else if (newStatus == 'returned' && oldStatus == 'active_borrow') {
-              NotificationService().showNotification(
-                id: nId,
-                title: 'Return Confirmed 📚',
-                body: 'Your return for "$bookTitle" has been confirmed. Thank you!',
-              );
-            } else if (newStatus == 'cancelled' && oldStatus == 'pending_pickup') {
-              NotificationService().showNotification(
-                id: nId,
-                title: 'Request Cancelled ❌',
-                body: 'Your request for "$bookTitle" has been cancelled by the library.',
-              );
+              if (oldStatus != null && oldStatus != newStatus) {
+                final nId = doc.id.hashCode.abs().remainder(100000);
+                if (newStatus == 'active_borrow' &&
+                    oldStatus == 'pending_pickup') {
+                  NotificationService().showNotification(
+                    id: nId,
+                    title: 'Pickup Confirmed ✅',
+                    body:
+                        'Your pickup for "$bookTitle" has been confirmed. Enjoy your book!',
+                  );
+                } else if (newStatus == 'returned' &&
+                    oldStatus == 'active_borrow') {
+                  NotificationService().showNotification(
+                    id: nId,
+                    title: 'Return Confirmed 📚',
+                    body:
+                        'Your return for "$bookTitle" has been confirmed. Thank you!',
+                  );
+                } else if (newStatus == 'cancelled' &&
+                    oldStatus == 'pending_pickup') {
+                  NotificationService().showNotification(
+                    id: nId,
+                    title: 'Request Cancelled ❌',
+                    body:
+                        'Your request for "$bookTitle" has been cancelled by the library.',
+                  );
+                }
+              }
+              _knownBorrowStatuses[doc.id] = newStatus;
+            } else if (change.type == DocumentChangeType.removed) {
+              _knownBorrowStatuses.remove(change.doc.id);
             }
           }
-          _knownBorrowStatuses[doc.id] = newStatus;
-        } else if (change.type == DocumentChangeType.removed) {
-          _knownBorrowStatuses.remove(change.doc.id);
-        }
-      }
-    });
+        });
   }
 
   void _clearBorrowsListener() {
