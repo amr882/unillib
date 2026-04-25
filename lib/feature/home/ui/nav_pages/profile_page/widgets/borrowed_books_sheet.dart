@@ -145,7 +145,7 @@ class _BorrowedBooksSheetState extends State<BorrowedBooksSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.inventory_2_outlined,
+                Icons.auto_stories_outlined,
                 size: 60,
                 color: AppColors.gold.withOpacity(0.3),
               ),

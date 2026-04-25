@@ -103,9 +103,12 @@ class _LoginScreenState extends State<LoginScreen>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Center(
-                          child: SvgPicture.asset(
-                            'assets/svgs/logo.svg',
-                            height: 20.h,
+                          child: Hero(
+                            tag: 'auth_logo',
+                            child: SvgPicture.asset(
+                              'assets/svgs/logo.svg',
+                              height: 20.h,
+                            ),
                           ),
                         ),
                         SizedBox(height: 5.h),

@@ -9,15 +9,51 @@ import 'package:unilib/feature/login/logic/login_controller.dart';
 import 'package:unilib/feature/login/ui/login_screen.dart';
 import 'package:unilib/feature/sign_up/ui/signup_screen.dart';
 import 'package:unilib/feature/admin/ui/screens/stat_details_screen.dart';
+import 'package:unilib/feature/legal/ui/terms_of_service_screen.dart';
+import 'package:unilib/feature/legal/ui/borrow_policy_screen.dart';
+import 'package:unilib/core/routes/custom_page_route.dart';
+import 'package:unilib/core/logic/user_provider.dart';
+import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
+import 'package:unilib/feature/home/logic/user_books_provider.dart';
+import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
+import 'package:unilib/feature/admin/logic/admin_provider.dart';
+import 'package:unilib/feature/admin/logic/book_management_provider.dart';
+import 'package:unilib/feature/admin/ui/screens/add_book_screen.dart';
 
 class AppRouter {
   Route generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case Routes.mainScaffold:
-        return MaterialPageRoute(builder: (_) => const MainScaffold());
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => UserProvider(),
+            child: ChangeNotifierProvider(
+              create: (_) => BookCatalogProvider(),
+              child: ChangeNotifierProxyProvider<BookCatalogProvider, UserBooksProvider>(
+                create: (ctx) => UserBooksProvider(ctx.read<BookCatalogProvider>()),
+                update: (_, catalog, prev) => prev ?? UserBooksProvider(catalog),
+                child: const MainScaffold(),
+              ),
+            ),
+          ),
+        );
 
       case Routes.adminDashboard:
-        return MaterialPageRoute(builder: (_) => const AdminDashboardScreen());
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => UserProvider(),
+            child: ChangeNotifierProvider(
+              create: (_) => AdminProvider(),
+              child: ChangeNotifierProvider(
+                create: (_) => BookCatalogProvider(),
+                child: ChangeNotifierProvider(
+                  create: (_) => BookManagementProvider(),
+                  child: const AdminDashboardScreen(),
+                ),
+              ),
+            ),
+          ),
+        );
 
       case Routes.statDetailsScreen:
         final args = settings.arguments as Map<String, dynamic>;
@@ -29,21 +65,51 @@ class AppRouter {
         );
 
       case Routes.profileScreen:
-        return MaterialPageRoute(builder: (_) => const ProfileScreen());
-
-      case Routes.aiChatScreen:
-        return MaterialPageRoute(builder: (_) => const AiChatScreen());
-
-      case Routes.loginScreen:
         return MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider(
-            create: (_) => LoginController(),
-            child: const LoginScreen(),
+            create: (_) => UserProvider(),
+            child: const ProfileScreen(),
           ),
         );
 
+      case Routes.aiChatScreen:
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => GenerativeAiProvider(),
+            child: const AiChatScreen(),
+          ),
+        );
+
+      case Routes.loginScreen:
+        return SharedAxisPageRoute(
+          settings: settings,
+          child: ChangeNotifierProvider(
+            create: (_) => LoginController(),
+            child: const LoginScreen(),
+          ),
+          reverse: true, // Login is "back"
+        );
+
       case Routes.signupScreen:
-        return MaterialPageRoute(builder: (_) => const SignupScreen());
+        return SharedAxisPageRoute(
+          settings: settings,
+          child: const SignupScreen(),
+          reverse: false, // Signup is "forward"
+        );
+
+      case Routes.termsOfService:
+        return MaterialPageRoute(builder: (_) => const TermsOfServiceScreen());
+
+      case Routes.borrowPolicy:
+        return MaterialPageRoute(builder: (_) => const BorrowPolicyScreen());
+
+      case Routes.addBookScreen:
+        return MaterialPageRoute(
+          builder: (_) => ChangeNotifierProvider(
+            create: (_) => BookManagementProvider(),
+            child: const AddBookScreen(),
+          ),
+        );
 
       default:
         return MaterialPageRoute(

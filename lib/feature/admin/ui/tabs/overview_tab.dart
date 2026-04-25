@@ -23,7 +23,9 @@ class _OverviewTabState extends State<OverviewTab> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AdminProvider>().fetchAllBorrows();
+      final p = context.read<AdminProvider>();
+      p.fetchAllBorrows();
+      p.fetchAllUsers();
     });
   }
 
@@ -130,6 +132,69 @@ class _OverviewTabState extends State<OverviewTab> {
                     ),
                   ),
                 ],
+              ),
+
+              const SizedBox(height: 32),
+              Text(
+                'Quick Actions',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 14),
+              _QuickActionButton(
+                label: 'Register Book',
+                icon: Icons.library_add_rounded,
+                color: AppColors.gold,
+                onTap: () => context.pushNamed(Routes.addBookScreen),
+              ),
+
+              const SizedBox(height: 32),
+              Text(
+                'Monthly Analytics',
+                style: GoogleFonts.dmSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1E30),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.03)),
+                ),
+                child: Column(
+                  children: [
+                    _buildAnalyticRow(
+                      'Total Borrows',
+                      '${admin.totalBorrowsCount}',
+                      admin.totalBorrowsCount > 0
+                          ? '+${admin.totalBorrowsCount}'
+                          : '0',
+                      isPositive: true,
+                    ),
+                    const Divider(color: Colors.white10, height: 24),
+                    _buildAnalyticRow(
+                      'New Users',
+                      '${admin.newUsersCount}',
+                      'Last 7d',
+                      isPositive: true,
+                    ),
+                    const Divider(color: Colors.white10, height: 24),
+                    _buildAnalyticRow(
+                      'Returned On Time',
+                      admin.onTimeReturnRate,
+                      admin.onTimeReturnRate != '0%' ? 'Good' : '-',
+                      isPositive: admin.onTimeReturnRate != '0%',
+                    ),
+                  ],
+                ),
               ),
 
               // ── Overdue section ─────────────────────────────
@@ -242,6 +307,97 @@ class _OverviewTabState extends State<OverviewTab> {
                 }),
               ],
             ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalyticRow(
+    String label,
+    String value,
+    String trend, {
+    bool isPositive = true,
+  }) {
+    return Row(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 14),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: GoogleFonts.dmSans(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          trend,
+          style: GoogleFonts.dmSans(
+            color: isPositive ? Colors.greenAccent : Colors.redAccent,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1E30),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: GoogleFonts.dmSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
           ],
         ),
       ),

@@ -11,6 +11,7 @@ class AppInputField extends StatefulWidget {
   final TextEditingController? controller;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final int maxLines;
 
   const AppInputField({
     super.key,
@@ -21,6 +22,7 @@ class AppInputField extends StatefulWidget {
     this.controller,
     this.keyboardType = TextInputType.text,
     this.validator,
+    this.maxLines = 1,
   });
 
   @override
@@ -80,6 +82,7 @@ class _AppInputFieldState extends State<AppInputField> {
             obscureText: widget.isPassword && _obscure,
             keyboardType: widget.keyboardType,
             validator: widget.validator,
+            maxLines: widget.maxLines,
             style: AppTextStyles.inputText,
             cursorColor: AppColors.white,
             decoration: InputDecoration(

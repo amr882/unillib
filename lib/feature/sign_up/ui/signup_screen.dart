@@ -72,14 +72,13 @@ class _SignupScreenState extends State<SignupScreen>
             }
           });
 
-          return Scaffold(
-            backgroundColor: AppColors.navyMid,
-            body: Stack(
-              children: [
-                // ── Ambient glow (same as login) ─────────────
-                _BackgroundGlow(),
-
-                SafeArea(
+          return Stack(
+            children: [
+              Container(color: AppColors.navyMid),
+              _BackgroundGlow(),
+              Scaffold(
+                backgroundColor: Colors.transparent,
+                body: SafeArea(
                   child: FadeTransition(
                     opacity: _fadeAnim,
                     child: SlideTransition(
@@ -94,9 +93,12 @@ class _SignupScreenState extends State<SignupScreen>
                           ),
 
                           // ── Logo ───────────────────────────
-                          SvgPicture.asset(
-                            'assets/svgs/logo.svg',
-                            height: 10.h,
+                          Hero(
+                            tag: 'auth_logo',
+                            child: SvgPicture.asset(
+                              'assets/svgs/logo.svg',
+                              height: 10.h,
+                            ),
                           ),
                           SizedBox(height: 2.h),
 
@@ -128,8 +130,8 @@ class _SignupScreenState extends State<SignupScreen>
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),

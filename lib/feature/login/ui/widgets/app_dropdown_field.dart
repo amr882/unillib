@@ -81,10 +81,7 @@ class _AppDropdownFieldState<T> extends State<AppDropdownField<T>> {
             dropdownColor: AppColors.navyCard,
             icon: const Icon(Icons.arrow_drop_down, color: AppColors.textMuted),
             isExpanded: true,
-            hint: Text(
-              widget.hint,
-              style: AppTextStyles.hintText,
-            ),
+            hint: Text(widget.hint, style: AppTextStyles.hintText),
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(

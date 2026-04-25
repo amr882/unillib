@@ -5,6 +5,7 @@ import 'package:unilib/feature/admin/ui/tabs/overview_tab.dart';
 import 'package:unilib/feature/admin/ui/tabs/scanner_tab.dart';
 import 'package:unilib/feature/admin/ui/tabs/borrows_tab.dart';
 import 'package:unilib/feature/admin/ui/tabs/admin_profile_tab.dart';
+import 'package:unilib/feature/admin/ui/tabs/user_management_tab.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -19,6 +20,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final List<_NavItem> _navItems = const [
     _NavItem(icon: Icons.dashboard_rounded, label: 'Overview'),
     _NavItem(icon: Icons.qr_code_scanner_rounded, label: 'Scanner'),
+    _NavItem(icon: Icons.group_rounded, label: 'Users'),
     _NavItem(icon: Icons.library_books_rounded, label: 'Borrows'),
     _NavItem(icon: Icons.person_rounded, label: 'Profile'),
   ];
@@ -30,8 +32,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 1:
         return const ScannerTab();
       case 2:
-        return const BorrowsTab();
+        return const UserManagementTab();
       case 3:
+        return const BorrowsTab();
+      case 4:
         return const AdminProfileTab();
       default:
         return const OverviewTab();

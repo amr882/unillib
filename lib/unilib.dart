@@ -2,15 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:sizer/sizer.dart';
-import 'package:unilib/core/logic/user_provider.dart';
+
 import 'package:unilib/core/routes/app_router.dart';
 import 'package:unilib/core/routes/routes.dart';
-import 'package:unilib/feature/admin/logic/admin_provider.dart';
-import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
-import 'package:unilib/feature/home/logic/user_books_provider.dart';
-import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 
 class UniLib extends StatefulWidget {
@@ -55,39 +51,26 @@ class _UniLibState extends State<UniLib> {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) {
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(create: (_) => UserProvider()),
-            ChangeNotifierProvider(create: (_) => BookCatalogProvider()),
-            ChangeNotifierProxyProvider<BookCatalogProvider, UserBooksProvider>(
-              create: (ctx) =>
-                  UserBooksProvider(ctx.read<BookCatalogProvider>()),
-              update: (_, catalog, prev) => prev ?? UserBooksProvider(catalog),
-            ),
-            ChangeNotifierProvider(create: (_) => GenerativeAiProvider()),
-            ChangeNotifierProvider(create: (_) => AdminProvider()),
-          ],
-          child: MaterialApp(
-            useInheritedMediaQuery: true,
+        return MaterialApp(
+          useInheritedMediaQuery: true,
 
-            theme: ThemeData(
-              scaffoldBackgroundColor: AppColors.navy,
-              fontFamily: GoogleFonts.dmSans().fontFamily,
-            ),
-            debugShowCheckedModeBanner: false,
-            title: 'Unilib',
-            onGenerateRoute: widget.appRouter.generateRoute,
-            home: FutureBuilder<_AuthResult>(
-              future: _authFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState != ConnectionState.done) {
-                  return const _SplashScreen();
-                }
+          theme: ThemeData(
+            scaffoldBackgroundColor: AppColors.navy,
+            fontFamily: GoogleFonts.dmSans().fontFamily,
+          ),
+          debugShowCheckedModeBanner: false,
+          title: 'Unilib',
+          onGenerateRoute: widget.appRouter.generateRoute,
+          home: FutureBuilder<_AuthResult>(
+            future: _authFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState != ConnectionState.done) {
+                return const _SplashScreen();
+              }
 
-                final route = snapshot.data?.route ?? Routes.loginScreen;
-                return _Redirect(route: route);
-              },
-            ),
+              final route = snapshot.data?.route ?? Routes.loginScreen;
+              return _Redirect(route: route);
+            },
           ),
         );
       },

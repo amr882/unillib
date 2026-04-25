@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
@@ -94,19 +95,30 @@ class ReviewStep extends StatelessWidget {
             style: AppTextStyles.subheading.copyWith(
               color: Colors.white38,
               height: 1.5,
+              fontSize: 13,
             ),
-            children: const [
-              TextSpan(text: 'By creating an account you agree to '),
+            children: [
+              const TextSpan(text: 'By creating an account you agree to '),
               TextSpan(
                 text: 'Terms of Service',
-                style: TextStyle(color: Color(0xFF4A9EFF)),
+                style: const TextStyle(
+                  color: Color(0xFF4A9EFF),
+                  fontWeight: FontWeight.bold,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () => context.pushNamed(Routes.termsOfService),
               ),
-              TextSpan(text: ' and our '),
+              const TextSpan(text: ' and our '),
               TextSpan(
                 text: 'Borrowing Policy',
-                style: TextStyle(color: Color(0xFF4A9EFF)),
+                style: const TextStyle(
+                  color: Color(0xFF4A9EFF),
+                  fontWeight: FontWeight.bold,
+                ),
+                recognizer: TapGestureRecognizer()
+                  ..onTap = () => context.pushNamed(Routes.borrowPolicy),
               ),
-              TextSpan(text: ' of Benha University.'),
+              const TextSpan(text: ' of Benha University.'),
             ],
           ),
         ),

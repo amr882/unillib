@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:sizer/sizer.dart';
 import 'package:unilib/core/theme/app_colors.dart';
 import 'package:unilib/core/theme/app_text_styles.dart';
+import 'package:unilib/feature/guide/ui/app_guide_screen.dart';
 
 class HomeWelcomeHeader extends StatelessWidget {
   final String userName;
@@ -74,16 +75,31 @@ class HomeWelcomeHeader extends StatelessWidget {
                     duration: 1200.ms,
                     color: AppColors.white.withOpacity(0.3),
                   )
-            : CircleAvatar(
-                radius: 20,
-                backgroundColor: AppColors.gold,
-                child: Text(
-                  displayUserName.isNotEmpty && displayUserName != '...'
-                      ? displayUserName[0]
-                      : 'U',
-                  style: AppTextStyles.heading.copyWith(
-                    color: AppColors.white,
-                    fontSize: 18,
+            : GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AppGuideScreen()),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.gold.withOpacity(0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.explore_rounded,
+                    color: AppColors.gold,
+                    size: 22,
                   ),
                 ),
               ),

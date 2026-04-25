@@ -8,6 +8,12 @@ class UserModel {
   final String academicYear;
   final String createdAt;
   final String role;
+  final String? employeeId;
+  final String? phoneNumber;
+  final String? branch;
+  final List<String>? permissions;
+  final Map<String, int>? activityStats;
+  final bool isVerified;
 
   UserModel({
     required this.id,
@@ -19,6 +25,12 @@ class UserModel {
     required this.academicYear,
     required this.createdAt,
     this.role = 'student',
+    this.employeeId,
+    this.phoneNumber,
+    this.branch,
+    this.permissions,
+    this.activityStats,
+    this.isVerified = false,
   });
 
   bool get isAdmin => role == 'admin';
@@ -36,6 +48,12 @@ class UserModel {
       academicYear: map['academicYear'] as String? ?? '??',
       createdAt: map['createdAt']?.toString() ?? '??',
       role: map['role'] as String? ?? 'student',
+      employeeId: map['employeeId'] as String?,
+      phoneNumber: map['phoneNumber'] as String?,
+      branch: map['branch'] as String?,
+      permissions: (map['permissions'] as List?)?.map((e) => e as String).toList(),
+      activityStats: (map['activityStats'] as Map?)?.map((k, v) => MapEntry(k as String, v as int)),
+      isVerified: map['isVerified'] as bool? ?? false,
     );
   }
 
@@ -48,6 +66,12 @@ class UserModel {
     'academicYear': academicYear,
     'createdAt': createdAt,
     'role': role,
+    'employeeId': employeeId,
+    'phoneNumber': phoneNumber,
+    'branch': branch,
+    'permissions': permissions,
+    'activityStats': activityStats,
+    'isVerified': isVerified,
   };
 
   UserModel copyWith({
@@ -59,6 +83,12 @@ class UserModel {
     String? academicYear,
     String? createdAt,
     String? role,
+    String? employeeId,
+    String? phoneNumber,
+    String? branch,
+    List<String>? permissions,
+    Map<String, int>? activityStats,
+    bool? isVerified,
   }) {
     return UserModel(
       id: id,
@@ -70,10 +100,16 @@ class UserModel {
       academicYear: academicYear ?? this.academicYear,
       createdAt: createdAt ?? this.createdAt,
       role: role ?? this.role,
+      employeeId: employeeId ?? this.employeeId,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      branch: branch ?? this.branch,
+      permissions: permissions ?? this.permissions,
+      activityStats: activityStats ?? this.activityStats,
+      isVerified: isVerified ?? this.isVerified,
     );
   }
 
   @override
   String toString() =>
-      'UserModel(id: $id, name: $fullName, email: $email, faculty: $faculty)';
+      'UserModel(id: $id, name: $fullName, email: $email, role: $role, isVerified: $isVerified)';
 }

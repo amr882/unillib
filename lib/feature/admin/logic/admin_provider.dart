@@ -9,10 +9,12 @@ class AdminProvider extends ChangeNotifier {
   final AdminBorrowActions _actions = AdminBorrowActions();
 
   List<BorrowRecord> _allBorrows = [];
+  List<UserModel> _allUsers = [];
   bool _isLoading = false;
   String? _error;
 
   List<BorrowRecord> get allBorrows => _allBorrows;
+  List<UserModel> get allUsers => _allUsers;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -157,8 +159,76 @@ class AdminProvider extends ChangeNotifier {
     }).toList();
   }
 
+  // ── Fetch all users ─────────────────────────────────────────
+  Future<void> fetchAllUsers() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final snap = await _firestore
+          .collection('users')
+          .orderBy('firstName')
+          .get();
+
+      _allUsers = snap.docs
+          .map((doc) => UserModel.fromMap(doc.data(), doc.id))
+          .where((user) => user.role != 'admin')
+          .toList();
+    } catch (e) {
+      _error = 'Failed to load users: $e';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ── Search users by name / ID / Email ───────────────────────
+  List<UserModel> searchUsers(String query) {
+    if (query.isEmpty) return _allUsers;
+    final q = query.toLowerCase();
+    return _allUsers.where((u) {
+      return u.fullName.toLowerCase().contains(q) ||
+          u.studentId.toLowerCase().contains(q) ||
+          u.email.toLowerCase().contains(q);
+    }).toList();
+  }
+
   void clearError() {
     _error = null;
     notifyListeners();
+  }
+
+  // ── Dynamic Analytics Helpers ────────────────────────────────
+
+  int get totalBorrowsCount => _allBorrows.length;
+
+  int get newUsersCount {
+    final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+    return _allUsers.where((u) {
+      try {
+        final dt = DateTime.parse(u.createdAt);
+        return dt.isAfter(sevenDaysAgo);
+      } catch (_) {
+        return false;
+      }
+    }).length;
+  }
+
+  String get onTimeReturnRate {
+    final returned = returnedBorrows;
+    if (returned.isEmpty) return '0%';
+
+    int onTime = 0;
+    for (var b in returned) {
+      if (b.pickupConfirmedAt != null && b.returnConfirmedAt != null) {
+        final deadline = b.pickupConfirmedAt!.add(const Duration(days: 14));
+        if (b.returnConfirmedAt!.isBefore(deadline) ||
+            b.returnConfirmedAt!.isAtSameMomentAs(deadline)) {
+          onTime++;
+        }
+      }
+    }
+    return '${((onTime / returned.length) * 100).toStringAsFixed(0)}%';
   }
 }
