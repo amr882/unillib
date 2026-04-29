@@ -55,7 +55,7 @@ class StatCard extends StatelessWidget {
               Text(
                 value,
                 style: GoogleFonts.dmSans(
-                  fontSize: 28,
+                  fontSize: 24,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),

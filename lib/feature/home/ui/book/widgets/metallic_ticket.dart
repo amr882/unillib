@@ -13,6 +13,23 @@ class MetallicTicket extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dueDate = DateTime.now().add(const Duration(days: 14));
+    final months = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
+    final dueString = '${months[dueDate.month - 1]} ${dueDate.day}';
+
     return Container(
       width: 85.w,
       height: 55.h,
@@ -160,7 +177,7 @@ class MetallicTicket extends StatelessWidget {
                                   '#${book.id.substring(0, 5).toUpperCase()}',
                             ),
                             SizedBox(width: 8.w),
-                            const TicketMeta(label: 'DUE', value: 'APR 14'),
+                            TicketMeta(label: 'DUE', value: dueString),
                           ],
                         ),
                       ],

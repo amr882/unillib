@@ -12,10 +12,6 @@ import 'package:unilib/feature/admin/ui/screens/stat_details_screen.dart';
 import 'package:unilib/feature/legal/ui/terms_of_service_screen.dart';
 import 'package:unilib/feature/legal/ui/borrow_policy_screen.dart';
 import 'package:unilib/core/routes/custom_page_route.dart';
-import 'package:unilib/core/logic/user_provider.dart';
-import 'package:unilib/feature/home/logic/book_catalog_provider.dart';
-import 'package:unilib/feature/home/logic/user_books_provider.dart';
-import 'package:unilib/feature/home/ui/nav_pages/ai_page/logic/user/generative_ai_provider.dart';
 import 'package:unilib/feature/admin/logic/admin_provider.dart';
 import 'package:unilib/feature/admin/logic/book_management_provider.dart';
 import 'package:unilib/feature/admin/ui/screens/add_book_screen.dart';
@@ -25,32 +21,16 @@ class AppRouter {
     switch (settings.name) {
       case Routes.mainScaffold:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => UserProvider(),
-            child: ChangeNotifierProvider(
-              create: (_) => BookCatalogProvider(),
-              child: ChangeNotifierProxyProvider<BookCatalogProvider, UserBooksProvider>(
-                create: (ctx) => UserBooksProvider(ctx.read<BookCatalogProvider>()),
-                update: (_, catalog, prev) => prev ?? UserBooksProvider(catalog),
-                child: const MainScaffold(),
-              ),
-            ),
-          ),
+          builder: (_) => const MainScaffold(),
         );
 
       case Routes.adminDashboard:
         return MaterialPageRoute(
           builder: (_) => ChangeNotifierProvider(
-            create: (_) => UserProvider(),
+            create: (_) => AdminProvider(),
             child: ChangeNotifierProvider(
-              create: (_) => AdminProvider(),
-              child: ChangeNotifierProvider(
-                create: (_) => BookCatalogProvider(),
-                child: ChangeNotifierProvider(
-                  create: (_) => BookManagementProvider(),
-                  child: const AdminDashboardScreen(),
-                ),
-              ),
+              create: (_) => BookManagementProvider(),
+              child: const AdminDashboardScreen(),
             ),
           ),
         );
@@ -66,18 +46,12 @@ class AppRouter {
 
       case Routes.profileScreen:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => UserProvider(),
-            child: const ProfileScreen(),
-          ),
+          builder: (_) => const ProfileScreen(),
         );
 
       case Routes.aiChatScreen:
         return MaterialPageRoute(
-          builder: (_) => ChangeNotifierProvider(
-            create: (_) => GenerativeAiProvider(),
-            child: const AiChatScreen(),
-          ),
+          builder: (_) => const AiChatScreen(),
         );
 
       case Routes.loginScreen:

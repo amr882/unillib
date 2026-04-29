@@ -183,7 +183,7 @@ class _AiActiveChatViewState extends State<AiActiveChatView> {
                 SizedBox(height: 1.5.h),
                 AiMessage(
                   msg:
-                      "Hello! I'm UniLib AI, your personal Books AI assistant. How can I help you today?\n\nأهلاً بك! أنا مساعد UniLib الذكي، كيف يمكنني مساعدتك اليوم؟",
+                      "Hello! I'm UniLib AI, your personal Books AI assistant. How can I help you today?\n",
                   timeText: _formatTime(DateTime.now()),
                 ),
                 SizedBox(height: 2.h),

@@ -22,18 +22,24 @@ class TermsOfServiceScreen extends StatelessWidget {
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Terms of Service',
-                          style: AppTextStyles.heading.copyWith(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                          ),
-                        ).animate().fadeIn(duration: 600.ms).slideX(begin: -0.2),
+                              'Terms of Service',
+                              style: AppTextStyles.heading.copyWith(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            )
+                            .animate()
+                            .fadeIn(duration: 600.ms)
+                            .slideX(begin: -0.2),
                         SizedBox(height: 1.h),
                         Text(
                           'Last updated: April 2026',
@@ -44,37 +50,37 @@ class TermsOfServiceScreen extends StatelessWidget {
                         ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
                         SizedBox(height: 4.h),
                         ...[
-                          _Section(
-                            number: '01',
-                            title: 'Acceptance of Terms',
-                            content:
-                                'By accessing and using UniLib, you agree to be bound by these Terms of Service and all applicable laws and regulations of Benha University.',
-                          ),
-                          _Section(
-                            number: '02',
-                            title: 'User Eligibility',
-                            content:
-                                'This application is exclusively for students and staff of Benha University. You must use your official university credentials to create an account.',
-                          ),
-                          _Section(
-                            number: '03',
-                            title: 'User Responsibilities',
-                            content:
-                                'You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use.',
-                          ),
-                          _Section(
-                            number: '04',
-                            title: 'Intel Property',
-                            content:
-                                'All content, including books, digital resources, and the application interface, are the property of Benha University or its content suppliers and are protected by copyright laws.',
-                          ),
-                          _Section(
-                            number: '05',
-                            title: 'Limitations of Liability',
-                            content:
-                                'UniLib and Benha University shall not be liable for any damages arising out of the use or inability to use the services provided by this application.',
-                          ),
-                        ]
+                              _Section(
+                                number: '01',
+                                title: 'Acceptance of Terms',
+                                content:
+                                    'By accessing and using UniLib, you agree to be bound by these Terms of Service and all applicable laws and regulations of Benha University.',
+                              ),
+                              _Section(
+                                number: '02',
+                                title: 'User Eligibility',
+                                content:
+                                    'This application is exclusively for students and staff of Benha University. You must use your official university credentials to create an account.',
+                              ),
+                              _Section(
+                                number: '03',
+                                title: 'User Responsibilities',
+                                content:
+                                    'You are responsible for maintaining the confidentiality of your account and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use.',
+                              ),
+                              _Section(
+                                number: '04',
+                                title: 'Intel Property',
+                                content:
+                                    'All content, including books, digital resources, and the application interface, are the property of Benha University or its content suppliers and are protected by copyright laws.',
+                              ),
+                              _Section(
+                                number: '05',
+                                title: 'Limitations of Liability',
+                                content:
+                                    'UniLib and Benha University shall not be liable for any damages arising out of the use or inability to use the services provided by this application.',
+                              ),
+                            ]
                             .animate(interval: 100.ms)
                             .fadeIn(duration: 500.ms)
                             .slideY(begin: 0.1, end: 0),

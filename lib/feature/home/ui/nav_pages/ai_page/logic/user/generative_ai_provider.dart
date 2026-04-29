@@ -240,6 +240,23 @@ class GenerativeAiProvider extends ChangeNotifier {
     } catch (e) {
       if (!_isRequestCancelled) {
         _errorMessage = 'Error: $e';
+        
+        String errorText = "I'm sorry, I'm currently experiencing high demand or network issues. Please try again in a moment.";
+        if (e.toString().contains('503')) {
+          errorText = "I'm currently experiencing high demand spikes. Please try again in a moment.";
+        }
+        
+        final aiErrorMsg = _messageHandler.createAiMessage(errorText);
+        _addMessageToActiveSession(aiErrorMsg);
+        
+        final uid = _auth.currentUser?.uid;
+        if (uid != null) {
+          if (_activeChatId == null) {
+            await _finalizeNewSession(uid, text);
+          } else {
+            await _updateExistingSession(uid);
+          }
+        }
       }
     } finally {
       if (!_isRequestCancelled) {
